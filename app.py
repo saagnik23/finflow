@@ -65,13 +65,13 @@ st.set_page_config(
 
 SPENDSTORY_CSS = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,800;0,9..144,900;1,9..144,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap');
 
-/* Global Root Styling & Soft Neutral Canvas */
+/* Global Root Styling: Warm Apricot / Terracotta Canvas matching Crowz */
 .stApp {
-    background: #F7F7FA !important;
-    font-family: 'Plus Jakarta Sans', 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-    color: #111216;
+    background: #E8A185 !important;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    color: #1E1F24;
 }
 
 /* Hide Streamlit default header, toolbar, sidebar, and expand toggle */
@@ -90,14 +90,23 @@ header[data-testid="stHeader"],
     visibility: hidden !important;
 }
 
-/* Main workspace centered layout */
+/* Grand Floating White Card Workspace */
 .stMainBlockContainer, [data-testid="stMainBlockContainer"], .block-container {
-    max-width: 1420px !important;
-    padding-top: 14px !important;
-    padding-bottom: 48px !important;
-    padding-left: 92px !important;
-    padding-right: 24px !important;
-    margin: 0 auto !important;
+    max-width: 1240px !important;
+    background: #FFFFFF !important;
+    border-radius: 38px !important;
+    padding-top: 28px !important;
+    padding-bottom: 40px !important;
+    padding-left: 36px !important;
+    padding-right: 36px !important;
+    margin: 24px auto !important;
+    box-shadow: 0 24px 70px rgba(160, 68, 38, 0.22) !important;
+}
+
+h1, h2, h3, .main-heading, .client-dashboard-title {
+    font-family: 'Fraunces', Georgia, serif !important;
+    font-weight: 800 !important;
+    color: #1E1F24 !important;
 }
 
 @media (max-width: 1080px) {
