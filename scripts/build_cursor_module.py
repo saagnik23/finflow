@@ -5,21 +5,21 @@ def get_b64(path):
     with open(path, "rb") as f:
         return base64.b64encode(f.read()).decode("ascii")
 
-a38 = get_b64("src/assets/cursor-arrow-38.png")
-h38 = get_b64("src/assets/cursor-hand-38.png")
-ahi = get_b64("src/assets/spendstory-cursor-arrow.png")
-hhi = get_b64("src/assets/spendstory-cursor-hand.png")
+a38 = get_b64("src/assets/cursor-modern-black-36.png")
+h38 = get_b64("src/assets/cursor-modern-hand-36.png")
+ahi = get_b64("src/assets/modern-black-cursor-master.png")
+hhi = get_b64("src/assets/modern-black-hand-master.png")
 
 template = '''"""SpendStory Cursor Assets & Dual-Layer Implementation Module.
 
-Exact reproduction of reference cursor artwork:
-- Arrow: 301x471 px master, hotspot tip at (11, 10).
-- Hand: 459x469 px master, hotspot fingertip at (154, 4).
-Scaled to display height 38px (Arrow: 24x38, hotspot 1, 1; Hand: 37x38, hotspot 12, 0).
+Exact modern black rounded cursor design:
+- Arrow: 668x800 px master, apex hotspot at (2, 0) in 30x36 px web asset.
+- Hand: 700x800 px master, fingertip hotspot at (10, 2) in 32x36 px web asset.
+Scaled to display height 36px (Arrow: 30x36, hotspot 2, 0; Hand: 32x36, hotspot 10, 2).
 """
 
-ARROW_HOTSPOT = (1, 1)
-HAND_HOTSPOT = (12, 0)
+ARROW_HOTSPOT = (2, 0)
+HAND_HOTSPOT = (10, 2)
 
 ARROW_38_B64 = "''' + a38 + '''"
 HAND_38_B64 = "''' + h38 + '''"
@@ -38,18 +38,18 @@ def get_cursor_css(enabled: bool = True) -> str:
     return f"""
     <style id="spendstory-cursor-css">
     @media (pointer: fine) {{
-        /* Base page movement: Exact Arrow illustration */
+        /* Base page movement: Exact modern black arrow */
         html, body, .stApp, .stApp * {{
-            cursor: url('{ARROW_DATA_URI}') 1 1, auto;
+            cursor: url('{ARROW_DATA_URI}') 2 0, auto;
         }}
         
-        /* Interactive targets: Exact Hand illustration */
+        /* Interactive targets: Modern black pointing hand */
         a, button, [role="button"], input[type="submit"], input[type="button"],
         .stButton > button, [data-testid="stBaseButton-secondary"], [data-testid="stBaseButton-primary"],
         select, [data-testid="stSelectbox"], [role="radiogroup"] label, .stRadio label,
         [role="tab"], [role="slider"], .donut-slice, .month-target, [data-baseweb="select"],
         .interactive, summary, [data-testid="stExpander"] summary {{
-            cursor: url('{HAND_DATA_URI}') 12 0, pointer !important;
+            cursor: url('{HAND_DATA_URI}') 10 2, pointer !important;
         }}
         
         /* Text input fields: Native I-beam */
@@ -116,13 +116,13 @@ def get_cursor_follower_html(enabled: bool = True) -> str:
                     image-rendering: crisp-edges;
                 }}
                 #spendstory-cursor-follower .arrow-img {{
-                    width: 24px;
-                    height: 38px;
+                    width: 30px;
+                    height: 36px;
                     display: block;
                 }}
                 #spendstory-cursor-follower .hand-img {{
-                    width: 37px;
-                    height: 38px;
+                    width: 32px;
+                    height: 36px;
                     display: none;
                 }}
                 #spendstory-cursor-follower.is-interactive .arrow-img {{
@@ -201,8 +201,8 @@ def get_cursor_follower_html(enabled: bool = True) -> str:
                     currentX += (targetX - currentX) * 0.35;
                     currentY += (targetY - currentY) * 0.35;
                     
-                    const offsetX = isInteractive ? -12 : -1;
-                    const offsetY = isInteractive ? 0 : -1;
+                    const offsetX = isInteractive ? -10 : -2;
+                    const offsetY = isInteractive ? -2 : 0;
                     const scale = isPressed ? " scale(0.96)" : "";
                     const posX = Math.round((currentX + offsetX) * 10) / 10;
                     const posY = Math.round((currentY + offsetY) * 10) / 10;
@@ -231,4 +231,3 @@ def get_cursor_follower_html(enabled: bool = True) -> str:
 with open("src/cursor_assets.py", "w") as f:
     f.write(template)
 print("Wrote src/cursor_assets.py successfully!")
-

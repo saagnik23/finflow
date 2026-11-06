@@ -41,12 +41,31 @@
 - **Category Review:** Enhanced review queue with model confidence explanations and 1-click confirmation / reassignment buttons.
 - **Model Evaluation:** Updated holdout evaluation explorer with synthetic test metrics and transparent classification statistics.
 
-### Phase 4 — Exact Cursor Artwork & Interaction Calibration
-- Verified exact Arrow (`301×471 px`, web `24×38 px`, hotspot `1, 1`) and Hand (`459×469 px`, web `37×38 px`, hotspot `12, 0`) raster assets extracted from the reference clipboard image.
-- Preserved thick black outline, solid white fill, cool-grey offset shadow, dot eyes, and `w`-shaped mouth with zero modification.
-- Verified dual-layer implementation: Layer 1 CSS hardware fallback + Layer 2 RAF smooth follower overlay (`0.35` smoothing factor).
-- Calibrated state detection: Hand pointer activates over nav pills, popover buttons, and chart controls; follower fades to `opacity: 0` over text inputs to preserve native OS I-beam; scales to `0.92` on click.
-- Automated verification executed via `scripts/verify_recomposition_cursor.py` (100% pass).
+### Phase 4 — Illustrated Cursor Architecture
+- Implemented dual-layer cursor architecture: Layer 1 CSS hardware fallback + Layer 2 RAF smooth follower overlay (`0.35` smoothing factor).
+- Calibrated state detection: Hand pointer activates over nav pills, popover buttons, and chart controls; follower fades to `opacity: 0` over text inputs to preserve native OS I-beam; scales on pointer click.
+
+### Phase 5 — Exact Modern Black Cursor Design Implementation
+- Processed user-provided modern black rounded pointer image (`media_1793986442335_385b3a09.png`).
+- Isolated master artwork without noise or artifacts:
+  - Master Arrow: `src/assets/modern-black-cursor-master.png` (668 × 800 px).
+  - Master Hand: `src/assets/modern-black-hand-master.png` (700 × 800 px).
+- Generated web-ready assets with subpixel-accurate antialiasing:
+  - Arrow (30 × 36 px, apex hotspot `2, 0`): `src/assets/cursor-modern-black-36.png`.
+  - Hand (32 × 36 px, fingertip hotspot `10, 2`): `src/assets/cursor-modern-hand-36.png`.
+  - Fallback Arrow (25 × 30 px, hotspot `2, 0`): `src/assets/cursor-modern-black-30.png`.
+- Updated `scripts/build_cursor_module.py` and rebuilt `src/cursor_assets.py`.
+- Updated `src/dashboard_charts.css` cursor data URIs and hotspot definitions (`2 0` for arrow, `10 2` for hand).
+- Verified dual-layer implementation:
+  - Layer 1: Hardware-accelerated CSS cursor `cursor: url(...) 2 0, auto;` and `10 2, pointer !important;`.
+  - Layer 2: RAF follower with offset translation (`-2px, 0px` for arrow, `-10px, -2px` for hand), `0.35` lerp, scale on press, touch / reduced motion bypass, and opacity 0 over text inputs.
+- Executed `scripts/verify_recomposition_cursor.py`:
+  - Neutral canvas: Arrow displayed (`isInteractive: False`, `opacity: 1`).
+  - Nav pill hover: Hand displayed (`isInteractive: True`).
+  - Search input hover: Follower suppressed (`opacity: 0`) for native I-beam.
+  - Pointer down: Click press state verified (`isPressed: True`).
+- Executed full test suite: 32/32 tests passing.
+
 
 ### Phase 5 — Verification & Screenshot Capture
 - Ran full test suite: `pytest -v` &rarr; **32/32 tests passed** in 2.26s.
