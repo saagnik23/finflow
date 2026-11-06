@@ -50,7 +50,7 @@ DEMO_MONTH = "2026-11"
 HOSTED_DEMO = os.environ.get("SPENDSTORY_DEMO") == "1"
 
 st.set_page_config(
-    page_title="SpendStory · Personal Finance",
+    page_title="FinFlow · Personal Finance",
     page_icon="💸",
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -937,7 +937,7 @@ with st.container(key="top_app_header"):
             """
             <div class="brand-header">
                 <span class="brand-dot"></span>
-                <span class="brand-title">SpendStory</span>
+                <span class="brand-title">FinFlow</span>
             </div>
             """
         )
@@ -1014,7 +1014,7 @@ if show_import_dialog or st.session_state.get("show_import_panel", False):
         st.subheader("Import Transactions CSV")
         st.caption("Upload a UTF-8 CSV with headers: `id,date,description,amount,type,category`. Limit 2 MB, 10,000 rows.")
         if HOSTED_DEMO:
-            st.caption("Use fictional transactions here. For personal records, run SpendStory locally.")
+            st.caption("Use fictional transactions here. For personal records, run FinFlow locally.")
         uploaded_file = st.file_uploader("Select CSV file", type=["csv"], label_visibility="collapsed")
         if uploaded_file:
             content_bytes = uploaded_file.read()
@@ -1102,7 +1102,7 @@ if st.session_state.active_nav == "Overview":
 
     if not ledger_months:
         with st.container(border=True):
-            st.markdown("**Explore SpendStory with a sample ledger**")
+            st.markdown("**Explore FinFlow with a sample ledger**")
             st.caption("Load a year of fictional student transactions and budgets.")
             st.button("Try sample data", key="overview_sample_data", type="primary", on_click=load_sample_data)
 

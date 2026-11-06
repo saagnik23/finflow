@@ -1,10 +1,10 @@
-# SpendStory
+# FinFlow
 
-SpendStory is an AI-assisted personal finance dashboard for students. It helps you see where your money went, check how spending compares with category budgets, and review expense categories suggested by a machine learning model. Built for the **AI for Finance CIA-2** assignment.
+FinFlow is an AI-assisted personal finance dashboard for students. It helps you see where your money went, check how spending compares with category budgets, and review expense categories suggested by a machine learning model. Built for the **AI for Finance CIA-2** assignment.
 
 [Open the live demo](https://spendstory.onrender.com/) · [Project report](docs/PROJECT_REPORT.md) · [Presentation walkthrough](docs/DEMO_SCRIPT.md)
 
-![SpendStory Redesigned Overview](docs/spendstory-reference-style-render.png)
+![FinFlow Redesigned Overview](docs/spendstory-reference-style-render.png)
 
 ## Try the demo
 
@@ -20,7 +20,7 @@ The November demo records **₹19,300 in income**, **₹14,160 in expenses**, an
 
 ## How the AI works
 
-When an expense has no category, SpendStory uses **TF-IDF** to represent the transaction description and **logistic regression** to suggest a category. If the description contains no known terms or the model score is below its cutoff, the app sends the expense to Category Review. Manual corrections remain on the transaction when the same CSV is imported again.
+When an expense has no category, FinFlow uses **TF-IDF** to represent the transaction description and **logistic regression** to suggest a category. If the description contains no known terms or the model score is below its cutoff, the app sends the expense to Category Review. Manual corrections remain on the transaction when the same CSV is imported again.
 
 On 18 synthetic test examples, the model **categorized 5 correctly** and **sent 13 to human review**. These results describe a small fictional test set. Budget comparisons and financial totals use explicit rules and integer paise. The model runs without an external AI API. [Evaluation results](reports/model_evaluation.json)
 

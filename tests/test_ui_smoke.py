@@ -12,7 +12,7 @@ def test_app_startup_and_render():
     at = AppTest.from_file(APP_PATH, default_timeout=30)
     at.run()
     assert not at.exception
-    assert any("SpendStory" in str(h.value) for h in at.html)
+    assert any("FinFlow" in str(h.value) or "SpendStory" in str(h.value) for h in at.html)
 
 
 def test_app_navigation_and_views():
