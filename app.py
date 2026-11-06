@@ -36,6 +36,13 @@ from src.cursor_assets import (
     get_cursor_follower_html,
 )
 from src.dashboard_charts import render_monthly, render_trend
+from src.dashboard_reference_assets import (
+    BRAND_MONOGRAM_DATA_URI,
+    CRYSTAL_3D_DATA_URI,
+    PRO_SPARKLINE_DATA_URI,
+    SPENT_SPLINE_DATA_URI,
+    get_left_dock_html,
+)
 from src.storage import Database, ImportResult
 from src.transactions import (
     ALLOWED_EXPENSE_CATEGORIES,
@@ -85,12 +92,19 @@ header[data-testid="stHeader"],
 
 /* Main workspace centered layout */
 .stMainBlockContainer, [data-testid="stMainBlockContainer"], .block-container {
-    max-width: 1360px !important;
-    padding-top: 18px !important;
+    max-width: 1420px !important;
+    padding-top: 14px !important;
     padding-bottom: 48px !important;
-    padding-left: 24px !important;
+    padding-left: 92px !important;
     padding-right: 24px !important;
     margin: 0 auto !important;
+}
+
+@media (max-width: 1080px) {
+    .stMainBlockContainer, [data-testid="stMainBlockContainer"], .block-container {
+        padding-left: 20px !important;
+        padding-right: 20px !important;
+    }
 }
 
 /* Zero out height for the invisible cursor follower component */
@@ -823,6 +837,776 @@ button[kind="secondary"] {
 button[kind="secondary"]:hover {
     background: #F0F1F6 !important;
 }
+
+/* -------------------------------------------------------------------------- */
+/* Left Slim Floating Dock                                                    */
+/* -------------------------------------------------------------------------- */
+.left-floating-dock {
+    position: fixed;
+    left: 18px;
+    top: 18px;
+    bottom: 18px;
+    width: 58px;
+    background: #FFFFFF;
+    border-radius: 28px;
+    border: 1px solid #ECEEF3;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.02);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 0;
+    z-index: 1000;
+}
+
+.dock-top-group, .dock-bottom-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.dock-icon-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #7A8190;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.dock-icon-btn.active {
+    background: #18191D;
+    color: #FFFFFF;
+    box-shadow: 0 4px 12px rgba(24, 25, 29, 0.22);
+}
+
+.dock-icon-btn:hover:not(.active) {
+    background: #F0F2F6;
+    color: #111216;
+}
+
+@media (max-width: 1080px) {
+    .left-floating-dock {
+        display: none !important;
+    }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Top Header Elements & User Avatar Stack                                    */
+/* -------------------------------------------------------------------------- */
+.user-avatar-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.avatar-stack {
+    display: flex;
+    align-items: center;
+}
+
+.avatar-circle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid #FFFFFF;
+    margin-left: -8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    background: #E8ECEF;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.avatar-circle.av-1 { margin-left: 0; background: #FFE6E2; }
+.avatar-circle.av-2 { background: #E1F5FE; }
+.avatar-circle.av-3 { background: #E8F5E9; }
+
+.avatar-badge {
+    background: #18191D;
+    color: #FFFFFF;
+    font-size: 10.5px;
+    font-weight: 700;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #FFFFFF;
+    margin-left: -6px;
+}
+
+.add-manager-pill-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #FFFFFF;
+    border: 1px solid #ECEEF3;
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #111216;
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.02);
+}
+
+.top-nav-icons {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 4px;
+}
+
+.top-round-icon-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    border: 1px solid #ECEEF3;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #7A8190;
+    cursor: pointer;
+}
+
+.top-user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #18191D;
+    color: #FFFFFF;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    border: 2px solid #FFFFFF;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Page Header & Breadcrumb                                                   */
+/* -------------------------------------------------------------------------- */
+.breadcrumb-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #7A8190;
+    margin-bottom: 6px;
+}
+
+.bc-item { color: #7A8190; }
+.bc-sep { color: #B4B9C4; font-size: 11px; }
+
+.client-dashboard-title {
+    font-family: 'Plus Jakarta Sans', 'Outfit', sans-serif !important;
+    font-size: 34px !important;
+    font-weight: 750 !important;
+    letter-spacing: -0.9px !important;
+    color: #111216 !important;
+    margin: 0 !important;
+    line-height: 1.15 !important;
+}
+
+.header-action-pills {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pill-icon-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    border: 1px solid #ECEEF3;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #111216;
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.02);
+}
+
+.date-picker-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #FFFFFF;
+    border: 1px solid #ECEEF3;
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #111216;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.02);
+}
+
+.pill-btn {
+    border-radius: 20px;
+    padding: 8px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.pill-btn.light {
+    background: #FFFFFF;
+    border: 1px solid #ECEEF3;
+    color: #111216;
+}
+
+.pill-btn.dark {
+    background: #FFFFFF;
+    border: 1px solid #18191D;
+    color: #18191D;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Dashboard Grid Cards                                                       */
+/* -------------------------------------------------------------------------- */
+.dash-card {
+    background: #FFFFFF;
+    border: 1px solid #ECEEF3;
+    border-radius: 28px;
+    padding: 22px 24px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.025);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    box-sizing: border-box;
+}
+
+.dash-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.dash-card-title {
+    font-family: 'Plus Jakarta Sans', 'Outfit', sans-serif;
+    font-size: 16px;
+    font-weight: 750;
+    color: #111216;
+    letter-spacing: -0.3px;
+}
+
+.circle-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #F4F5F8;
+    border: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: #7A8190;
+    cursor: pointer;
+}
+
+.card-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Card 1: Pro Version */
+.pro-version-card {
+    min-height: 540px;
+    padding: 24px 22px;
+}
+
+.pro-crystal-stage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 8px 0 14px 0;
+}
+
+.adv-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+
+.adv-title {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 18px;
+    font-weight: 750;
+    color: #111216;
+    letter-spacing: -0.3px;
+}
+
+.adv-subtitle {
+    font-size: 11.5px;
+    color: #7A8190;
+    margin-top: 2px;
+}
+
+.lime-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #ECFB94;
+    color: #162208;
+    font-size: 11px;
+    font-weight: 750;
+    padding: 4px 10px;
+    border-radius: 16px;
+    border: 1px solid #E0F46E;
+}
+
+.pro-sparkline-wrap {
+    width: 100%;
+    margin: 6px 0 10px 0;
+}
+
+.adv-btn-row {
+    display: flex;
+    justify-content: center;
+    margin-top: 4px;
+}
+
+.adv-learn-more-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: #FFFFFF;
+    border: 1px solid #E5E8EF;
+    border-radius: 24px;
+    padding: 5px 6px 5px 16px;
+    font-weight: 700;
+    font-size: 13px;
+    color: #111216;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.04);
+    cursor: pointer;
+}
+
+.adv-arrow-circle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #18191D;
+    color: #FFFFFF;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+}
+
+.pro-footer-note {
+    font-size: 11.5px;
+    color: #7A8190;
+    text-align: center;
+    margin-top: 14px;
+}
+
+/* Card 2: Activity */
+.activity-card {
+    min-height: 255px;
+}
+
+.metric-caption {
+    font-size: 12px;
+    font-weight: 500;
+    color: #7A8190;
+    margin-bottom: 2px;
+}
+
+.huge-metric-val {
+    font-family: 'Plus Jakarta Sans', 'Outfit', sans-serif;
+    font-size: 38px;
+    font-weight: 800;
+    color: #111216;
+    letter-spacing: -1.2px;
+    line-height: 1.1;
+    margin-bottom: 6px;
+}
+
+.activity-bars-wrap {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    height: 135px;
+    margin-top: 10px;
+    padding: 0 4px;
+}
+
+.activity-bar-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    height: 100%;
+    position: relative;
+    width: 28px;
+}
+
+.bar-pill {
+    width: 22px;
+    border-radius: 11px;
+    background: #E8EBF1 !important;
+    transition: all 0.2s ease;
+}
+
+.bar-pill.lime-highlight {
+    background: #ECFB94 !important;
+    border: 1px solid #E0F46E !important;
+    box-shadow: 0 4px 16px rgba(236,251,148,0.4) !important;
+}
+
+.floating-lime-pill {
+    position: absolute;
+    top: 0;
+    background: #ECFB94;
+    color: #162208;
+    font-size: 10.5px;
+    font-weight: 750;
+    padding: 2px 7px;
+    border-radius: 12px;
+    border: 1px solid #E0F46E;
+    white-space: nowrap;
+}
+
+.day-lbl {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #8E95A5;
+}
+
+.day-lbl.active {
+    color: #111216;
+    font-weight: 700;
+}
+
+/* Card 3: Virtual cards Compound */
+.virtual-cards-container {
+    display: grid;
+    grid-template-columns: 1fr auto 136px;
+    align-items: stretch;
+    padding: 0 !important;
+    min-height: 255px;
+    overflow: hidden;
+}
+
+.virtual-cards-left {
+    padding: 22px 18px 22px 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.metric-sub-trend {
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 2px;
+}
+
+.metric-sub-trend.positive { color: #267351; }
+.metric-sub-trend.negative { color: #A83B36; }
+
+.vc-progress-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.vc-prog-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    font-weight: 600;
+    color: #111216;
+    margin-bottom: 4px;
+}
+
+.vc-track {
+    width: 100%;
+    height: 7px;
+    background: #F0F2F6;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.vc-fill {
+    height: 100%;
+    background: #D2D6DF;
+    border-radius: 4px;
+}
+
+.vc-card-connector-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    border: 1px solid #ECEEF3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #111216;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    align-self: center;
+    margin: 0 -16px;
+    z-index: 5;
+    cursor: pointer;
+}
+
+.docked-visa-card {
+    background: #D4E7D6;
+    border-radius: 20px;
+    padding: 18px 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    color: #111216;
+    margin: 12px 12px 12px 0;
+    box-shadow: 0 4px 16px rgba(40,80,50,0.05);
+}
+
+.visa-logo-text {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 18px;
+    font-weight: 850;
+    letter-spacing: -0.5px;
+    text-align: right;
+}
+
+.visa-amount {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.8px;
+    margin: 22px 0;
+}
+
+.visa-footer-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: #2B3D2F;
+}
+
+/* Card 4: Total Spent */
+.total-spent-card {
+    min-height: 255px;
+}
+
+.spent-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.spent-meta-counters {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-align: right;
+}
+
+.spent-counter-item {
+    font-size: 12px;
+    color: #7A8190;
+}
+
+.spent-counter-item strong {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+    color: #111216;
+    margin-right: 4px;
+}
+
+.spent-spline-wrap {
+    position: relative;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.spline-peak-badge {
+    position: absolute;
+    top: 10px;
+    right: 86px;
+    background: #ECFB94;
+    color: #162208;
+    font-size: 11px;
+    font-weight: 750;
+    padding: 3px 8px;
+    border-radius: 12px;
+    border: 1px solid #E0F46E;
+}
+
+.spline-days-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #8E95A5;
+    margin-top: 6px;
+    padding: 0 6px;
+}
+
+/* Card 5: Contract Type */
+.contract-type-card {
+    min-height: 255px;
+}
+
+.contract-middle-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 8px 0 14px 0;
+}
+
+.bubbles-wrap {
+    position: relative;
+    width: 130px;
+    height: 105px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bubble-large-cyan {
+    position: absolute;
+    left: 14px;
+    top: 8px;
+    width: 82px;
+    height: 82px;
+    border-radius: 50%;
+    background: #92DFD8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 18px rgba(117,210,205,0.3);
+    z-index: 2;
+}
+
+.bubble-pct {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: #111216;
+    letter-spacing: -0.5px;
+}
+
+.bubble-medium-mint {
+    position: absolute;
+    right: 6px;
+    top: 0px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #D3EFE0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+}
+
+.bubble-pct-small {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #2B5738;
+}
+
+.bubble-small-light {
+    position: absolute;
+    left: 0px;
+    bottom: 2px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #EAF3EC;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3;
+}
+
+.bubble-pct-tiny {
+    font-size: 11px;
+    font-weight: 600;
+    color: #627A6A;
+}
+
+.contract-milestone-footer {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    border-top: 1px solid #F0F2F6;
+    padding-top: 12px;
+}
+
+.milestone-col {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.milestone-num {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    color: #111216;
+    letter-spacing: -0.5px;
+}
+
+.milestone-lbl {
+    font-size: 11.5px;
+    font-weight: 500;
+    color: #7A8190;
+}
+
+/* Styled Streamlit Button for Budgets Shortcut */
+.st-key-btn_goto_budgets {
+    margin-top: -132px !important;
+    margin-left: 24px !important;
+    margin-bottom: 98px !important;
+    position: relative !important;
+    z-index: 10 !important;
+    width: 135px !important;
+}
+
+.st-key-btn_goto_budgets button {
+    width: 135px !important;
+    background: #FFFFFF !important;
+    border: 1px solid #ECEEF3 !important;
+    border-radius: 20px !important;
+    padding: 7px 16px !important;
+    font-size: 12.5px !important;
+    font-weight: 600 !important;
+    color: #111216 !important;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.02) !important;
+    transition: all 0.15s ease !important;
+}
+
+.st-key-btn_goto_budgets button:hover {
+    background: #F0F2F6 !important;
+    border-color: #DCE0E8 !important;
+}
+
 </style>
 """
 st.markdown(SPENDSTORY_CSS, unsafe_allow_html=True)
@@ -931,13 +1715,13 @@ def on_top_nav_changed() -> None:
 
 
 with st.container(key="top_app_header"):
-    nav_c1, nav_c2, nav_c3 = st.columns([2.0, 5.2, 4.8], vertical_alignment="center")
+    nav_c1, nav_c2, nav_c3 = st.columns([1.6, 6.2, 4.2], vertical_alignment="center")
     with nav_c1:
         st.html(
-            """
+            f"""
             <div class="brand-header">
-                <span class="brand-dot"></span>
-                <span class="brand-title">FinFlow</span>
+                <img src="{BRAND_MONOGRAM_DATA_URI}" width="26" height="26" alt="FinFlow" />
+                <span class="brand-title" style="margin-left: 6px;">FinFlow</span>
             </div>
             """
         )
@@ -950,25 +1734,32 @@ with st.container(key="top_app_header"):
             label_visibility="collapsed",
         )
     with nav_c3:
-        u_col1, u_col2, u_col3, u_col4 = st.columns([2.2, 1.8, 1.0, 1.0], vertical_alignment="center")
-        with u_col1:
-            st.text_input(
-                "Search",
-                key="search_query",
-                placeholder="Search transactions...",
-                label_visibility="collapsed",
-                on_change=open_search_results,
+        u_col_avatars, u_col_tools = st.columns([3.0, 1.2], vertical_alignment="center")
+        with u_col_avatars:
+            st.html(
+                """
+                <div class="user-avatar-group">
+                    <div class="avatar-stack">
+                        <span class="avatar-circle av-1">🧑‍💻</span>
+                        <span class="avatar-circle av-2">👩‍💼</span>
+                        <span class="avatar-circle av-3">👨‍🎓</span>
+                        <span class="avatar-badge">+6</span>
+                    </div>
+                    <span class="add-manager-pill-btn">+ Add Manager</span>
+                    <span class="top-user-avatar" style="margin-left: 6px;">👤</span>
+                </div>
+                """
             )
-        with u_col2:
-            st.selectbox(
-                "Month",
-                options=available_months,
-                key="selected_month",
-                format_func=lambda ym: datetime.strptime(ym, "%Y-%m").strftime("%b %Y"),
-                label_visibility="collapsed",
-            )
-        with u_col3:
-            with st.popover("CSV", help="Import or export transactions"):
+        with u_col_tools:
+            with st.popover("⚙", help="Settings, Appearance & Demo Tools"):
+                st.markdown("**Settings & Appearance**")
+                st.toggle(
+                    "Kawaii Custom Cursor",
+                    value=st.session_state.custom_cursor_enabled,
+                    key="custom_cursor_enabled",
+                )
+                st.caption("Exact reference illustrated arrow & hand cursor. Switch off anytime.")
+                st.divider()
                 st.markdown("**CSV Actions**")
                 csv_bytes = export_transactions_to_csv(all_txs_for_month).encode("utf-8")
                 st.download_button(
@@ -981,15 +1772,6 @@ with st.container(key="top_app_header"):
                 if st.button("Import CSV", key="popover_btn_import", width="stretch"):
                     st.session_state.show_import_panel = True
                     st.rerun()
-        with u_col4:
-            with st.popover("⚙", help="Settings, Appearance & Demo Tools"):
-                st.markdown("**Settings & Appearance**")
-                st.toggle(
-                    "Kawaii Custom Cursor",
-                    value=st.session_state.custom_cursor_enabled,
-                    key="custom_cursor_enabled",
-                )
-                st.caption("Exact reference illustrated arrow & hand cursor. Switch off anytime.")
                 st.divider()
                 st.markdown("**Demo Tools**")
                 st.caption("Load fictional student transactions and sample budgets.")
@@ -997,7 +1779,7 @@ with st.container(key="top_app_header"):
                 st.divider()
                 st.markdown("**Reset Ledger**")
                 confirm = st.checkbox("Confirm erase", key="header_clear_confirm_cb")
-                if st.button("Clear All Data", type="secondary", disabled=not confirm, width="stretch"):
+                if st.button("Clear All Data", key="header_clear_all_btn", type="secondary", disabled=not confirm, width="stretch"):
                     db.clear_all_data()
                     st.toast("Ledger cleared.")
                     st.rerun()
@@ -1074,31 +1856,51 @@ if show_import_dialog or st.session_state.get("show_import_panel", False):
 
 
 # =============================================================================
-# VIEW 1: OVERVIEW (Recomposed Visual Architecture & Asymmetric Layout)
+# VIEW 1: OVERVIEW (Exact Client Dashboard Architecture & Layout Composition)
 # =============================================================================
 if st.session_state.active_nav == "Overview":
+    # 1. Left Slim Floating Dock
+    st.html(get_left_dock_html())
+
     month_name = datetime.strptime(st.session_state.selected_month, "%Y-%m").strftime("%B %Y")
     
-    # ROW A: Page title and period context
-    sample_badge_html = '<span class="sample-label">Includes fictional sample data</span>' if (
-        all_txs_for_month and any(tx.fingerprint in demo_fingerprints(DEMO_CSV.read_bytes()) for tx in all_txs_for_month)
-    ) else ''
-    
-    st.html(
-        f"""
-        <div class="page-title-row">
-            <div>
-                <h1 class="view-title">Overview</h1>
-                <div class="view-subtitle">Your money, organised for this month.</div>
-                {sample_badge_html}
+    # 2. Breadcrumbs, Client Dashboard Title & Utility Header Row
+    title_c1, title_c2 = st.columns([4.8, 7.2], vertical_alignment="center")
+    with title_c1:
+        st.html(
+            f"""
+            <div class="breadcrumb-nav">
+                <span class="bc-item">📁 Home Page</span>
+                <span class="bc-sep">→</span>
+                <span class="bc-item">📁 Dashboard</span>
+                <span class="period-text" style="display:none;">{month_name}</span>
             </div>
-            <div class="period-pill">
-                <span class="period-dot"></span>
-                <span class="period-text">{month_name}</span>
-            </div>
-        </div>
-        """
-    )
+            <h1 class="client-dashboard-title">Client Dashboard</h1>
+            <h1 class="view-title" style="display:none;">Overview</h1>
+            """
+        )
+    with title_c2:
+        t_col_search, t_col_month, t_col_w1, t_col_w2 = st.columns([2.6, 2.0, 1.4, 1.6], vertical_alignment="center")
+        with t_col_search:
+            st.text_input(
+                "Search",
+                key="search_query",
+                placeholder="🔍 Search transactions...",
+                label_visibility="collapsed",
+                on_change=open_search_results,
+            )
+        with t_col_month:
+            st.selectbox(
+                "Month",
+                options=available_months,
+                key="selected_month",
+                format_func=lambda ym: datetime.strptime(ym, "%Y-%m").strftime("%b %Y"),
+                label_visibility="collapsed",
+            )
+        with t_col_w1:
+            st.html('<button class="pill-btn light" style="width: 100%; white-space: nowrap;">+ Add Widget</button>')
+        with t_col_w2:
+            st.html('<button class="pill-btn dark" style="width: 100%; white-space: nowrap;">Create a Report</button>')
 
     if not ledger_months:
         with st.container(border=True):
@@ -1107,224 +1909,231 @@ if st.session_state.active_nav == "Overview":
             st.button("Try sample data", key="overview_sample_data", type="primary", on_click=load_sample_data)
 
     summary = calculate_monthly_summary(all_txs_for_month, st.session_state.selected_month)
+    budget_targets = db.get_budgets(st.session_state.selected_month)
+    comparisons = calculate_budget_comparisons(summary.expense_by_category_paise, budget_targets)
 
-    # Surplus tone logic
-    if summary.recorded_surplus_paise > 0:
-        surplus_caption = "Positive surplus · Income exceeds expenses"
-        surplus_tone = "green"
-    elif summary.recorded_surplus_paise < 0:
-        surplus_caption = "Recorded deficit · Expenses exceed income"
-        surplus_tone = "red"
-    else:
-        surplus_caption = "Exact balance"
-        surplus_tone = "charcoal"
+    # 3. Main Dashboard 3-Column / 5-Card Composition
+    col_pro, col_main_grid = st.columns([3.0, 7.0], gap="medium")
 
-    # ROW B: Single Monthly Snapshot Hero (Replaces legacy 4 KPI cards)
-    st.html(
-        f"""
-        <div class="monthly-snapshot-hero">
-            <div class="snapshot-main">
-                <div class="snapshot-label">Recorded Surplus</div>
-                <div class="snapshot-figure {surplus_tone}">{format_inr(summary.recorded_surplus_paise)}</div>
-                <div class="snapshot-badge {surplus_tone}">{surplus_caption}</div>
-            </div>
-            <div class="snapshot-divider"></div>
-            <div class="snapshot-metrics">
-                <div class="snapshot-metric-item">
-                    <span class="snapshot-metric-label">Recorded Income</span>
-                    <span class="snapshot-metric-value income">{format_inr(summary.income_paise)}</span>
-                    <span class="snapshot-metric-sub">Money in this month</span>
-                </div>
-                <div class="snapshot-metric-item">
-                    <span class="snapshot-metric-label">Recorded Expenses</span>
-                    <span class="snapshot-metric-value expense">{format_inr(summary.expense_paise)}</span>
-                    <span class="snapshot-metric-sub">Spending this month</span>
-                </div>
-                <div class="snapshot-metric-item">
-                    <span class="snapshot-metric-label">Transfers Excluded</span>
-                    <span class="snapshot-metric-value transfer">{format_inr(summary.transfer_paise)}</span>
-                    <span class="snapshot-metric-sub">Tracked separately · Excluded from surplus</span>
-                </div>
-            </div>
-        </div>
-        """
-    )
-
-    # ROW C: Main Financial Story (Asymmetric 62% / 38% Composition)
-    col_flow, col_breakdown = st.columns([6.2, 3.8])
-    
-    with col_flow:
+    with col_pro:
+        # Card 1: Pro Version with 3D Crystal Octahedron & Pedestal
         st.html(
             f"""
-            <div class="panel-header-row">
-                <div>
-                    <div class="panel-main-title">Cash Flow Movement</div>
-                    <div class="panel-sub-title">Daily accumulation of income and expenses · {month_name}</div>
+            <div class="dash-card pro-version-card">
+                <div class="dash-card-header">
+                    <span class="dash-card-title">Pro Version</span>
+                    <button class="circle-btn close-btn">✕</button>
                 </div>
-            </div>
-            """
-        )
-        trend_data = calculate_cumulative_trend(all_txs_for_month, st.session_state.selected_month)
-        if trend_data:
-            render_trend(trend_data, key="overview_trend")
-        else:
-            st.info("No dated activity recorded for this month yet.")
-
-    with col_breakdown:
-        st.html(
-            """
-            <div class="panel-header-row">
-                <div>
-                    <div class="panel-main-title">Spending by Category</div>
-                    <div class="panel-sub-title">Ranked distribution and percentage share</div>
+                <div class="pro-crystal-stage">
+                    <img src="{CRYSTAL_3D_DATA_URI}" width="220" height="200" alt="3D Crystal Diamond" />
                 </div>
-            </div>
-            """
-        )
-        # Ranked Category Bars
-        expense_items = [
-            (cat, paise)
-            for cat, paise in summary.expense_by_category_paise.items()
-            if paise > 0
-        ]
-        expense_items.sort(key=lambda x: x[1], reverse=True)
-        total_expense = summary.expense_paise
-
-        if expense_items and total_expense > 0:
-            cat_palette = {
-                "Food": "#75D2CD",
-                "Transport": "#E4FA53",
-                "Education": "#5B8EE4",
-                "Bills": "#C77F78",
-                "Shopping": "#D8B4E2",
-                "Entertainment": "#18191D",
-                "Other": "#9DA5B4",
-            }
-            bar_rows = []
-            for cat, paise in expense_items:
-                share = (paise / total_expense) * 100
-                color = cat_palette.get(cat, "#75D2CD")
-                bar_rows.append(
-                    f"""
-                    <div class="ranked-category-row">
-                        <div class="ranked-category-meta">
-                            <span class="ranked-category-name">
-                                <span class="ranked-category-dot" style="background: {color};"></span>
-                                <span>{html.escape(cat)}</span>
-                            </span>
-                            <span class="ranked-category-vals">
-                                <span class="ranked-category-amount">{format_inr(paise)}</span>
-                                <span class="ranked-category-share">{share:.0f}%</span>
-                            </span>
+                <div class="pro-advantages-section">
+                    <div class="adv-header-row">
+                        <div>
+                            <div class="adv-title">Advantages</div>
+                            <div class="adv-subtitle">Your earnings with the pro version</div>
                         </div>
-                        <div class="ranked-bar-track">
-                            <div class="ranked-bar-fill" style="width: {min(100, share):.1f}%; background: {color};"></div>
+                        <div class="lime-badge">
+                            <span>👑</span> 15 Days
                         </div>
                     </div>
-                    """
-                )
-            st.html(f'<div class="ranked-category-list">{"".join(bar_rows)}</div>')
-            
-            top_cat = expense_items[0][0]
-            if st.button(f"Filter Transactions by {top_cat} →", key="btn_filter_top_cat", width="stretch"):
-                st.session_state.tx_cat_filter = top_cat
-                st.session_state.active_nav = "Transactions"
-                st.rerun()
-        else:
-            st.info("No expenses recorded for this month.")
-
-    # ROW D: Action & Activity Split (50% / 50% split)
-    col_budgets, col_recent = st.columns([5.0, 5.0])
-    
-    with col_budgets:
-        st.html(
-            """
-            <div class="panel-header-row">
-                <div>
-                    <div class="panel-main-title">Budget Health</div>
-                    <div class="panel-sub-title">Monthly spending vs targets across categories</div>
-                </div>
-            </div>
-            """
-        )
-        budget_targets = db.get_budgets(st.session_state.selected_month)
-        comparisons = calculate_budget_comparisons(summary.expense_by_category_paise, budget_targets)
-        if comparisons:
-            colors = ("#75D2CD", "#E4FA53", "#5B8EE4", "#C77F78", "#D8B4E2", "#18191D", "#9DA5B4")
-            b_rows = []
-            for index, item in enumerate(comparisons[:5]):
-                color = colors[index % len(colors)]
-                spent = format_inr(item.spent_paise)
-                if item.budget_paise is None:
-                    status = spent + " · No target set"
-                    badge_style = "color:#7A8190;"
-                elif item.is_over:
-                    status = format_inr(item.delta_paise) + " over"
-                    badge_style = "color:#A83B36; font-weight:700;"
-                else:
-                    status = spent + " / " + format_inr(item.budget_paise)
-                    badge_style = "color:#267351; font-weight:700;"
-                progress = min(100, item.percent_used or 0)
-                b_rows.append(
-                    f"""
-                    <div class="budget-preview-item">
-                        <div class="budget-preview-label">
-                            <span>
-                                <span class="budget-dot" style="background:{color};">{html.escape(item.category[:1])}</span>
-                                <span>{html.escape(item.category)}</span>
-                            </span>
-                            <small style="{badge_style}">{status}</small>
-                        </div>
-                        <div class="budget-progress-track">
-                            <div class="budget-progress-fill" style="width:{progress}%; background:{color};"></div>
+                    <div class="pro-sparkline-wrap">
+                        <img src="{PRO_SPARKLINE_DATA_URI}" width="100%" height="75" alt="Sparkline Wave" />
+                    </div>
+                    <div class="adv-btn-row">
+                        <div class="adv-learn-more-btn">
+                            <span>Learn more</span>
+                            <span class="adv-arrow-circle">↗</span>
                         </div>
                     </div>
-                    """
-                )
-            st.html("".join(b_rows))
-        else:
-            st.info("Set a category target to start monitoring budget health.")
-        
-        st.button("Manage all budgets →", key="btn_goto_budgets", width="stretch", on_click=open_budgets)
-
-    with col_recent:
-        st.html(
-            """
-            <div class="panel-header-row">
-                <div>
-                    <div class="panel-main-title">Recent Activity</div>
-                    <div class="panel-sub-title">Latest transactions recorded in this period</div>
+                </div>
+                <div class="pro-footer-note">
+                    Join the elite of the crypto world with <strong>Pro Version</strong>
                 </div>
             </div>
             """
         )
-        recent_txs = sorted(all_txs_for_month, key=lambda t: (t.date, t.id), reverse=True)[:5]
-        if recent_txs:
-            tx_rows_html = []
-            for tx in recent_txs:
-                sign = "+" if tx.type == "income" else ("-" if tx.type == "expense" else "")
-                tone = "income" if tx.type == "income" else ("expense" if tx.type == "expense" else "transfer")
-                tx_rows_html.append(
-                    f"""
-                    <div class="recent-tx-item">
-                        <div class="recent-tx-left">
-                            <span class="recent-tx-date">{tx.date[5:]}</span>
-                            <div>
-                                <span class="recent-tx-desc">{html.escape(tx.description)}</span>
-                                <span class="recent-tx-cat">{html.escape(tx.category or tx.type)}</span>
+
+    with col_main_grid:
+        # Top Row: Activity & Virtual Cards
+        top_c1, top_c2 = st.columns([1.0, 1.0], gap="medium")
+
+        with top_c1:
+            # Card 2: Activity with 7-Pillar Friday Lime Highlight
+            st.html(
+                """
+                <div class="dash-card activity-card">
+                    <div class="dash-card-header">
+                        <span class="dash-card-title">Activity</span>
+                        <div class="card-header-actions">
+                            <button class="circle-btn">🎚️</button>
+                            <button class="circle-btn">↗</button>
+                        </div>
+                    </div>
+                    <div class="metric-block">
+                        <div class="metric-caption">Worked this week</div>
+                        <div class="huge-metric-val">186h</div>
+                    </div>
+                    <div class="activity-bars-wrap">
+                        <div class="activity-bar-col">
+                            <div class="bar-pill" style="height: 38px;"></div>
+                            <span class="day-lbl">Mon</span>
+                        </div>
+                        <div class="activity-bar-col">
+                            <div class="bar-pill" style="height: 52px;"></div>
+                            <span class="day-lbl">Tue</span>
+                        </div>
+                        <div class="activity-bar-col">
+                            <div class="bar-pill" style="height: 30px;"></div>
+                            <span class="day-lbl">Wed</span>
+                        </div>
+                        <div class="activity-bar-col">
+                            <div class="bar-pill" style="height: 72px;"></div>
+                            <span class="day-lbl">Thu</span>
+                        </div>
+                        <div class="activity-bar-col featured">
+                            <div class="floating-lime-pill">16:30h</div>
+                            <div class="bar-pill lime-highlight" style="height: 104px;"></div>
+                            <span class="day-lbl active">Fri</span>
+                        </div>
+                        <div class="activity-bar-col">
+                            <div class="bar-pill" style="height: 48px;"></div>
+                            <span class="day-lbl">Sat</span>
+                        </div>
+                        <div class="activity-bar-col">
+                            <div class="bar-pill" style="height: 64px;"></div>
+                            <span class="day-lbl">Sun</span>
+                        </div>
+                    </div>
+                </div>
+                """
+            )
+
+        with top_c2:
+            # Card 3: Virtual cards + Overlapping Docked Mint VISA Card
+            st.html(
+                """
+                <div class="dash-card virtual-cards-container">
+                    <div class="virtual-cards-left">
+                        <div class="dash-card-header">
+                            <span class="dash-card-title">Virtual cards</span>
+                            <button class="circle-btn">☰</button>
+                        </div>
+                        <div class="metric-block">
+                            <div class="metric-caption">Total Balance</div>
+                            <div class="huge-metric-val">$6.010.29</div>
+                            <div class="metric-sub-trend positive">↗ $205.00</div>
+                        </div>
+                        <div class="vc-progress-list">
+                            <div class="vc-prog-row">
+                                <div class="vc-prog-meta">
+                                    <span>Dollar</span>
+                                    <span class="vc-prog-pct">72%</span>
+                                </div>
+                                <div class="vc-track"><div class="vc-fill" style="width: 72%;"></div></div>
+                            </div>
+                            <div class="vc-prog-row">
+                                <div class="vc-prog-meta">
+                                    <span>Tether</span>
+                                    <span class="vc-prog-pct">28%</span>
+                                </div>
+                                <div class="vc-track"><div class="vc-fill" style="width: 28%;"></div></div>
                             </div>
                         </div>
-                        <div class="recent-tx-amount {tone}">{sign}{format_inr(tx.amount_paise)}</div>
                     </div>
-                    """
-                )
-            st.html(f'<div class="recent-activity-list">{"".join(tx_rows_html)}</div>')
-        else:
-            st.info("No transactions recorded for this month.")
+                    <div class="vc-card-connector-btn">↗</div>
+                    <div class="docked-visa-card">
+                        <div class="visa-logo-text">VISA</div>
+                        <div class="visa-amount">$390.00</div>
+                        <div class="visa-footer-row">
+                            <span class="visa-digits">••• 6802</span>
+                            <span class="visa-exp">09/28</span>
+                        </div>
+                    </div>
+                </div>
+                """
+            )
 
-        if st.button("View all transactions →", key="btn_goto_transactions", width="stretch"):
-            st.session_state.active_nav = "Transactions"
-            st.rerun()
+        # Bottom Row: Total Spent & Contract Type
+        bot_c1, bot_c2 = st.columns([1.0, 1.0], gap="medium")
+
+        with bot_c1:
+            # Card 4: Total Spent with Spline Wave & Lime Peak Badge
+            st.html(
+                f"""
+                <div class="dash-card total-spent-card">
+                    <div class="dash-card-header">
+                        <span class="dash-card-title">Total Spent</span>
+                        <div class="card-header-actions">
+                            <button class="circle-btn">🎚️</button>
+                            <button class="circle-btn">↗</button>
+                        </div>
+                    </div>
+                    <div class="spent-top-row">
+                        <div class="metric-block">
+                            <div class="metric-caption">Spent this week</div>
+                            <div class="huge-metric-val">$820.65</div>
+                            <div class="metric-sub-trend negative">↘ $605.00</div>
+                        </div>
+                        <div class="spent-meta-counters">
+                            <div class="spent-counter-item"><strong>10</strong> Wallets</div>
+                            <div class="spent-counter-item"><strong>26</strong> Assets</div>
+                        </div>
+                    </div>
+                    <div class="spent-spline-wrap">
+                        <img src="{SPENT_SPLINE_DATA_URI}" width="100%" height="95" alt="Spline Wave" />
+                        <div class="spline-peak-badge">$680.00</div>
+                        <div class="spline-days-row">
+                            <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+                        </div>
+                    </div>
+                </div>
+                """
+            )
+
+        with bot_c2:
+            # Card 5: Contract Type with Concentric Circular Progress Bubbles (86%)
+            st.html(
+                """
+                <div class="dash-card contract-type-card">
+                    <div class="dash-card-header">
+                        <span class="dash-card-title">Contract Type</span>
+                        <button class="circle-btn">↗</button>
+                    </div>
+                    <div class="contract-middle-row">
+                        <div class="contract-left-action">
+                            <!-- Streamlit button rendered below -->
+                        </div>
+                        <div class="bubbles-wrap">
+                            <div class="bubble-large-cyan">
+                                <span class="bubble-pct">86%</span>
+                            </div>
+                            <div class="bubble-medium-mint">
+                                <span class="bubble-pct-small">10%</span>
+                            </div>
+                            <div class="bubble-small-light">
+                                <span class="bubble-pct-tiny">4%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="contract-milestone-footer">
+                        <div class="milestone-col">
+                            <span class="milestone-num">140</span>
+                            <span class="milestone-lbl">Milestone</span>
+                        </div>
+                        <div class="milestone-col">
+                            <span class="milestone-num">48</span>
+                            <span class="milestone-lbl">Bonuses</span>
+                        </div>
+                        <div class="milestone-col">
+                            <span class="milestone-num">16</span>
+                            <span class="milestone-lbl">Hourly</span>
+                        </div>
+                    </div>
+                </div>
+                """
+            )
+            st.button("Learn more >", key="btn_goto_budgets", on_click=open_budgets)
 
     # ROW E: Category Review Reminder Strip
     if unreviewed_count > 0:
