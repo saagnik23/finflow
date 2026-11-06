@@ -67,10 +67,14 @@ SPENDSTORY_CSS = """
     color: #111216;
 }
 
-/* Hide Streamlit default sidebar and sidebar toggle on desktop */
-[data-testid="stSidebar"], [data-testid="stSidebarCollapsedControl"] {
+/* Hide Streamlit default header, toolbar, sidebar, and expand toggle */
+header[data-testid="stHeader"],
+[data-testid="stSidebar"],
+[data-testid="stSidebarCollapsedControl"],
+[data-testid="stExpandSidebarButton"] {
     display: none !important;
     width: 0 !important;
+    height: 0 !important;
     min-width: 0 !important;
     max-width: 0 !important;
     padding: 0 !important;
@@ -82,7 +86,7 @@ SPENDSTORY_CSS = """
 /* Main workspace centered layout */
 .stMainBlockContainer, [data-testid="stMainBlockContainer"], .block-container {
     max-width: 1360px !important;
-    padding-top: 14px !important;
+    padding-top: 18px !important;
     padding-bottom: 48px !important;
     padding-left: 24px !important;
     padding-right: 24px !important;
@@ -97,14 +101,19 @@ iframe[height="0"], [data-testid="stCustomComponentV1"]:has(iframe[height="0"]) 
     padding: 0 !important;
 }
 
-/* Top Application Header */
+/* Top Application Header Card */
+.st-key-top_app_header,
 .top-navbar-card {
-    background: #FFFFFF;
-    border: 1px solid #ECEEF3;
-    border-radius: 24px;
-    padding: 12px 22px;
-    margin-bottom: 24px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+    background: #FFFFFF !important;
+    border: 1px solid #ECEEF3 !important;
+    border-radius: 24px !important;
+    padding: 10px 22px !important;
+    margin-bottom: 24px !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02) !important;
+}
+
+.st-key-top_app_header > div[data-testid="stHorizontalBlock"] {
+    align-items: center !important;
 }
 
 .brand-header {
@@ -128,38 +137,74 @@ iframe[height="0"], [data-testid="stCustomComponentV1"]:has(iframe[height="0"]) 
     box-shadow: 0 0 0 3px #E0F4F2;
 }
 
-/* Segmented Control Pills in Top Header */
+/* Segmented Control / ButtonGroup Pills in Top Header */
+[data-testid="stButtonGroup"],
+[data-testid="stSegmentedControl"] {
+    background: transparent !important;
+}
+
+[data-testid="stButtonGroup"] label,
+[data-testid="stSegmentedControl"] label {
+    display: none !important;
+}
+
+[data-testid="stButtonGroup"] > div[role="radiogroup"],
+[data-testid="stSegmentedControl"] > div[role="radiogroup"],
 [data-testid="stSegmentedControl"] {
     background: #F0F1F6 !important;
     border-radius: 16px !important;
     padding: 4px !important;
     border: 1px solid #ECEEF3 !important;
     display: inline-flex !important;
+    gap: 3px !important;
     width: auto !important;
 }
 
+[data-testid="stButtonGroup"] button,
+[data-testid="stButtonGroup"] button[data-variant="segmented_control"],
+[data-testid="stButtonGroup"] button:not(:first-child),
+[data-testid="stButtonGroup"] button:not(:last-child),
 [data-testid="stSegmentedControl"] button {
     font-family: 'Plus Jakarta Sans', sans-serif !important;
     font-size: 13px !important;
     font-weight: 600 !important;
     border-radius: 12px !important;
-    border: none !important;
+    border: 0 !important;
+    border-color: transparent !important;
+    outline: none !important;
     color: #7A8190 !important;
     padding: 7px 16px !important;
     background: transparent !important;
     transition: all 0.15s ease !important;
+    box-shadow: none !important;
 }
 
+[data-testid="stButtonGroup"] button:hover,
+[data-testid="stButtonGroup"] button[data-variant="segmented_control"]:hover,
 [data-testid="stSegmentedControl"] button:hover {
     color: #111216 !important;
     background: rgba(255, 255, 255, 0.7) !important;
 }
 
+[data-testid="stButtonGroup"] button[aria-checked="true"],
+[data-testid="stButtonGroup"] button[data-selected="true"],
+[data-testid="stButtonGroup"] button[data-variant="segmented_control"][aria-checked="true"],
 [data-testid="stSegmentedControl"] button[aria-checked="true"],
 [data-testid="stSegmentedControl"] button[data-checked="true"] {
     background: #18191D !important;
     color: #FFFFFF !important;
     box-shadow: 0 2px 8px rgba(24, 25, 29, 0.18) !important;
+    border: 0 !important;
+}
+
+[data-testid="stButtonGroup"] button[aria-checked="true"] p,
+[data-testid="stButtonGroup"] button[aria-checked="true"] span,
+[data-testid="stButtonGroup"] button[aria-checked="true"] div,
+[data-testid="stSegmentedControl"] button[aria-checked="true"] p,
+[data-testid="stSegmentedControl"] button[aria-checked="true"] span,
+[data-testid="stSegmentedControl"] button[aria-checked="true"] div {
+    color: #FFFFFF !important;
+    font-weight: 600 !important;
 }
 
 /* Compact utility inputs in header */
