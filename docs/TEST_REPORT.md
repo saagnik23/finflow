@@ -1,21 +1,16 @@
-# SpendStory Redesign & Cursor Verification Test Report
+# SpendStory Test & Quality Assurance Report
 
-## 1. Executive Summary
+## 1. Test Suite Summary
 
-All functional and visual tests for the **SpendStory UI Redesign & Exact Reference Cursor Implementation** have passed with **100% success rate**.
-
-- **Unit Test Suite:** 32 / 32 tests passed (`pytest` in 2.12s).
-- **ML Model Evaluation:** 18 holdout synthetic test samples verified (`scripts/evaluate_model.py`); zero regression against `reports/model_evaluation.json`.
-- **Cross-Viewport Responsiveness:** Verified across Desktop (1440×900), Laptop (1280×800), Tablet (768×1024), and Mobile (375×812).
-- **Cursor Fidelity & Interaction:** Verified dual-layer architecture, exact artwork preservation, accurate hotspots, interactive state transitions, native text I-beam preservation, `prefers-reduced-motion` compliance, and touch device suppression.
-
----
-
-## 2. Automated Test Results (`pytest`)
+Executed test command: `pytest -v`
 
 ```
-platform darwin -- Python 3.13.5, pytest-9.2.0, pluggy-1.7.0
+============================= test session starts ==============================
+platform darwin -- Python 3.13.5, pytest-9.2.0, pluggy-1.7.0 -- .venv/bin/python3
+cachedir: .pytest_cache
 rootdir: /Users/saagnikdey/financecia2/SpendStory
+plugins: anyio-4.16.0
+collected 32 items
 
 tests/test_analytics.py::test_independent_demo_totals_verification PASSED [  3%]
 tests/test_analytics.py::test_transfer_exclusion PASSED                  [  6%]
@@ -47,50 +42,90 @@ tests/test_transactions.py::test_compute_fingerprint PASSED              [ 84%]
 tests/test_ui_smoke.py::test_app_startup_and_render PASSED               [ 87%]
 tests/test_ui_smoke.py::test_app_navigation_and_views PASSED             [ 90%]
 tests/test_ui_smoke.py::test_drilldown_and_filtering PASSED              [ 93%]
-tests/test_overview_budget_shortcut_and_slider_save PASSED               [ 96%]
+tests/test_ui_smoke.py::test_overview_budget_shortcut_and_slider_save PASSED [ 96%]
 tests/test_ui_smoke.py::test_hosted_demo_seeds_and_isolates_each_session PASSED [100%]
 
-============================== 32 passed in 2.12s ==============================
+============================== 32 passed in 2.26s ==============================
 ```
 
 ---
 
-## 3. Cursor Fidelity & Micro-Interactions Audit
+## 2. Machine Learning Holdout Evaluation
 
-| Test Case | Description | Expected Behavior | Actual Result | Status |
-|---|---|---|---|---|
-| **C-01** | Default page movement | Exact illustrated arrow pointer displayed | Follower active with `.arrow-img`, CSS `cursor: url(...) 1 1` | **PASS** |
-| **C-02** | Interactive hover | Pointing hand displayed over buttons, links, selects, and charts | Follower receives `.is-interactive`, `.hand-img` displayed | **PASS** |
-| **C-03** | Pointer down / click | Subtle 0.96 scale feedback without distortion | Follower receives `.is-pressed` scale transform | **PASS** |
-| **C-04** | Text input hover | Follower hides and native text I-beam appears | `opacity: 0`, computed `cursor: text` | **PASS** |
-| **C-05** | Click passthrough | Pointer events pass unhindered to underlying UI controls | `pointer-events: none` on overlay; buttons click reliably | **PASS** |
-| **C-06** | User toggle switch | "Kawaii Custom Cursor" toggled OFF in sidebar | Follower removed from DOM, custom CSS deactivated | **PASS** |
-| **C-07** | Motion accessibility | Emulated `prefers-reduced-motion: reduce` | Follower disabled (`display: none`), native transitions disabled | **PASS** |
-| **C-08** | Touch device suppression | Emulated iPhone 13 (coarse pointer) | Follower completely hidden; native touch gestures work | **PASS** |
+Executed command: `python scripts/evaluate_model.py`
+
+```
+=================================================================
+  Student Finance Assistant — ML Categorizer Evaluation
+=================================================================
+Training samples:  72
+Holdout samples:   18
+Training classes:  ['Bills', 'Education', 'Entertainment', 'Food', 'Shopping', 'Transport']
+-----------------------------------------------------------------
+
+Holdout Classification Report:
+               precision    recall  f1-score   support
+
+        Bills       1.00      0.33      0.50         3
+    Education       1.00      0.33      0.50         3
+Entertainment       0.00      0.00      0.00         3
+         Food       1.00      0.67      0.80         3
+        Other       0.00      0.00      0.00         0
+     Shopping       0.00      0.00      0.00         3
+    Transport       1.00      0.33      0.50         3
+
+     accuracy                           0.28        18
+    macro avg       0.57      0.24      0.33        18
+ weighted avg       0.67      0.28      0.38        18
+
+Overall Accuracy:   0.2778 (27.8%)
+Abstentions:        13 / 18 (72.2%)
+-----------------------------------------------------------------
+Report written to: reports/model_evaluation.json
+=================================================================
+```
 
 ---
 
-## 4. UI / UX Redesign Verification
+## 3. Automated Cursor & Micro-Interaction Audit
 
-| Page View | Key Verification Items | Status |
-|---|---|---|
-| **Overview** | Recorded Income (₹19,300), Expenses (₹14,160), Surplus (₹5,140), Transfers Excluded (₹2,750); cumulative trend chart; expense donut breakdown; budget previews | **PASS** |
-| **Transactions** | Table header, monospace transaction IDs with tooltip, date/description formatting, category selector update with instant toast notification, delete confirmation | **PASS** |
-| **Budgets** | Category limit sliders with toggle controls; remaining balance calculation; progress meter; over-budget alert styling | **PASS** |
-| **Category Review** | Unconfirmed transaction queue; review reason callout; category selectbox; "Confirm category" action | **PASS** |
-| **Model Evaluation** | 3 KPI summary metrics; individual example explorer; classification technical details table | **PASS** |
+Executed command: `python3 scripts/verify_recomposition_cursor.py`
+
+| Interaction Scenario | Expected State | Verified State | Status |
+|---|---|---|---|
+| **Neutral canvas movement** | Follower displays Arrow (`is-interactive=False`) | `{'exists': True, 'isInteractive': False, 'opacity': '1'}` | PASS |
+| **Top nav pill hover** | Follower switches to Hand (`is-interactive=True`) | `{'isInteractive': True}` | PASS |
+| **Text input hover** | Follower hidden (`opacity: 0`), native OS I-beam shown | `{'opacity': '0'}` | PASS |
+| **Pointer down (press)** | Follower applies scale response (`is-pressed=True`) | `{'isPressed': True}` | PASS |
 
 ---
 
-## 5. Visual Artifact Capture Manifest
+## 4. Objective Visual Acceptance Checklist
 
-Captured high-resolution screenshots saved to `docs/screenshots/redesign/`:
-- `01_overview_desktop_1440.png` (Overview at 1440 × 900)
-- `02_transactions_desktop_1440.png` (Transactions at 1440 × 900)
-- `03_budgets_desktop_1440.png` (Budgets at 1440 × 900)
-- `04_category_review_desktop_1440.png` (Category Review at 1440 × 900)
-- `05_model_eval_desktop_1440.png` (Model Evaluation at 1440 × 900)
-- `06_overview_laptop_1280.png` (Overview at 1280 × 800)
-- `07_overview_tablet_768.png` (Overview at 768 × 1024)
-- `08_overview_mobile_375.png` (Overview at 375 × 812)
+- [x] **Desktop primary navigation is no longer a full-height left sidebar:** Replaced by horizontal top-navigation header with segmented pills and utility actions.
+- [x] **Main content uses a new page composition:** Centered max-width 1360px workspace with deliberate vertical rhythm.
+- [x] **Four equal KPI cards are no longer arranged as the old single row:** Replaced by single Monthly Snapshot Hero.
+- [x] **Monthly summary is a distinct hero composition:** Recorded Surplus prominently featured in 38px bold with dynamic status badge, supported inline by Income, Expenses, and Transfers Excluded.
+- [x] **Cash flow and category spending use an asymmetric composition:** 62% cash flow movement timeline alongside 38% ranked spending bars.
+- [x] **Category spending is not the same oversized purple donut:** Replaced with clean ranked horizontal bars displaying category names, exact amounts, and percentage shares.
+- [x] **Budget health and recent activity are arranged in a new row/section:** 50%/50% split with progress tracks and recent transaction ledger entries.
+- [x] **Category-review reminder is integrated when relevant:** Contextual attention strip appears when items need human review.
+- [x] **Old purple/indigo chart palette is removed:** Sage green (`#83AD96`), muted coral (`#C77F78`), charcoal (`#202126`), and pale lime (`#E4F477`) applied.
+- [x] **Typography reflects clean geometric style:** Manrope font family loaded with tabular figures.
+- [x] **All pages share the new application shell:** Overview, Transactions, Budgets, Category Review, and Model Evaluation.
+- [x] **Cursor artwork matches supplied original artwork exactly:** Zero reinterpretation, exact silhouettes, facial expressions, and shadows preserved.
 
+---
+
+## 5. Functional Acceptance Checklist
+
+- [x] App starts with `./.venv/bin/streamlit run app.py --server.address 127.0.0.1 --server.port 8501`.
+- [x] Sample ledger loads via `Try sample data` (218 transactions).
+- [x] Overview values are computed from selected month (e.g. November 2026: Income ₹19,300, Expenses ₹14,160, Surplus ₹5,140, Transfers ₹2,750).
+- [x] Transfers remain excluded from surplus totals.
+- [x] Search input filters transactions and navigates to Transactions view.
+- [x] Month selection updates dashboard totals and query params.
+- [x] Budget target configuration modal preserves all slider values and updates SQLite.
+- [x] Category Review confirm/correct actions update database records atomically.
+- [x] CSV export generates valid UTF-8 transaction CSV.
+- [x] SQLite persistence verified in both local and hosted demo modes.

@@ -2,7 +2,7 @@
 
 ## 1. Executive Summary
 
-This audit assesses the current visual design, technical stack, Streamlit rendering architecture, and interaction dynamics of **SpendStory** prior to implementing the exact cursor artwork and visual language redesign specified in the design brief.
+This audit assesses the composition, technical stack, Streamlit rendering architecture, and interaction dynamics of **SpendStory** prior to and following the complete architectural recomposition and visual redesign.
 
 SpendStory is an AI-assisted personal finance dashboard built for students, combining a local SQLite ledger, TF-IDF + Logistic Regression categorization with confidence-based human-in-the-loop review, and financial metrics computed in integer paise.
 
@@ -22,58 +22,40 @@ SpendStory is an AI-assisted personal finance dashboard built for students, comb
 
 ---
 
-## 3. Visual Baseline & Design Gaps
+## 3. Visual Baseline & Composition Gaps
 
-### 3.1. Color Palette Discrepancy
-- **Current State:** The legacy interface uses a lavender-violet gradient canvas (`linear-gradient(161deg, #d7def8, #dedcf8, #e8d1f3)`), electric blue/purple brand accents (`#373EDC`, `#7E3AF2`), and magenta chart slices (`#ce38dd`, `#cc36df`).
-- **Required State:** The visual reference specifies a clean, neutral canvas (`#F4F4F6`), crisp white rounded cards (`#FFFFFF`), subtle borders (`#E3E4E8`), charcoal typography (`#191A1F`), muted mint (`#CFE4D8`), mint accent (`#78A98E`), pale lime (`#E4F477`), and charcoal buttons (`#202126`). Dominant purple/violet must be completely eliminated.
+### 3.1. Information Architecture & Layout Flaws in Before-State
+- **Full-Height Desktop Left Sidebar:** The legacy interface consumed 260px of horizontal desktop real estate with a vertical radio list, pushing primary financial data off-center.
+- **Disconnected Top Utility Bar:** Search, month selection, and CSV buttons floated in an awkward row above the page greeting.
+- **Greeting Row:** "Good day, Student 👋" consumed vertical space without providing actionable financial signals.
+- **Four Fragmented KPI Cards:** Income, Expenses, Surplus, and Transfers were displayed as four identical, disconnected boxes across a single row, failing to emphasize net cash flow.
+- **Oversized Purple Donut Chart:** Dominated the right-hand side of the page with excessive neon-purple and saturated pink segments, lacking direct scannability.
+- **Symmetric Lower Split:** Budgets and 12-month comparisons were forced into a generic 50/50 split at the bottom of the page.
 
-### 3.2. Typography
-- **Current State:** Defaults to standard system Inter / Segoe UI / sans-serif stack.
-- **Required State:** Manrope as primary typeface (geometric, clean, slightly rounded, highly legible) with Inter / system-ui fallback, tabular numbers for all currency figures.
-
-### 3.3. Component Surfaces & Shadows
-- **Current State:** Heavy neon-purple border glow (`box-shadow: 0 0 0 11px rgba(255,255,255,.36), 0 22px 50px rgba(82,53,151,.14)`), inconsistent card heights, and generic table rows.
-- **Required State:** Restrained, elegant soft surfaces with 14–16px rounded corners, 1px neutral borders (`#E3E4E8`), gentle micro-shadows (`rgba(20, 24, 45, 0.04)`), and clear visual hierarchy.
-
----
-
-## 4. Streamlit 1.66 DOM & Component Inspection
-
-### 4.1. DOM Hierarchy
-- Streamlit 1.66 wraps the application in `[data-testid="stAppViewContainer"]` with a sidebar `[data-testid="stSidebar"]` and main content area `[data-testid="stMain"]`.
-- `st.html(...)` injects `<style>` rules directly into the root document head, allowing reliable global CSS overrides.
-
-### 4.2. Custom Charts & Shadow DOM
-- `src/dashboard_charts.py` registers `_CHART = st.components.v2.component(...)`.
-- In Streamlit 1.66, `st.components.v2.component` creates custom HTML elements with **Shadow Roots** (`attachShadow({mode: 'open'})`).
-- **Implications for Cursors & Styling:**
-  - Standard global CSS rules do not pierce the shadow boundary. Therefore, chart styles, interactive hover states, and cursor rules must be provided in `src/dashboard_charts.css`.
-  - DOM pointer events (`pointermove`, `click`) have `composed: true` and naturally bubble out of shadow roots into the top-level `window` document.
-
-### 4.3. Streamlit Rerender Lifecycle
-- When a user changes navigation, filters, or inputs, Streamlit reruns the script top-to-bottom.
-- Injected `<style>` blocks persist cleanly without flash.
-- Any JavaScript must be idempotent, storing singleton instances on `window.__spendstory_cursor` to prevent duplicate event listeners or duplicate DOM overlay nodes.
+### 3.2. Color Palette & Typography Discrepancies
+- **Before-State:** Lavender-violet gradient canvas (`#d7def8` to `#e8d1f3`), electric blue/purple brand accents (`#373EDC`, `#7E3AF2`), and magenta chart slices (`#ce38dd`).
+- **Target Specification:** Soft, neutral canvas (`#F4F4F6`), crisp white rounded cards (`#FFFFFF`), subtle borders (`#E2E4E8`), charcoal typography (`#191A1F`), muted mint (`#D1E5D9`), sage green (`#83AD96`), pale lime (`#E4F477`), and charcoal buttons (`#202126`). Zero dominant purple/indigo.
+- **Typography:** Manrope font loaded with geometric, slightly rounded character and tabular numerals (`tabular-nums`) for currency values.
 
 ---
 
-## 5. Cursor Reference Inspection
+## 4. Recomposed Information Architecture
 
-- The master cursor reference (`docs/cursor_reference.png`) was inspected at high resolution:
-  - **Left character:** Hand-drawn kawaii arrow pointer (301 × 471 px), pointing up-left. Thick black outline, solid white interior, cool-grey offset shadow on the right/bottom, cute face with black eyes and small `w`-shaped mouth.
-  - **Right character:** Hand-drawn kawaii pointing hand (459 × 469 px), with index finger extended upward. Thick black outline, solid white interior, cool-grey offset shadow, matching facial expression.
-- **Hotspots:**
-  - Arrow: Tip of pointer at `(11, 10)` in source coordinates.
-  - Hand: Index fingertip at `(154, 4)` in source coordinates.
-- **Strategy:**
-  1. Prepare high-resolution PNG assets with transparent exterior, preserving 100% of the original black outline, white fill, facial features, and cool-grey shadow.
-  2. Implement an app-wide CSS `cursor: url(...)` base layer for instant, lag-free responsiveness across all elements.
-  3. Complement with an optional smooth follower overlay with exponential smoothing (`requestAnimationFrame`) when supported, respecting `prefers-reduced-motion` and touch devices.
+The new architecture replaces the legacy layout completely:
+1. **Desktop Top Navigation Shell:** A compact horizontal navbar (`56px` height) with brand wordmark on the left, segmented pill navigation in the center, and unified search, month dropdown, CSV popover, and settings popover on the right.
+2. **Monthly Snapshot Hero:** Replaces the four separate KPI cards with a unified, high-contrast surface: Recorded Surplus prominent in 38px bold at the center, supported inline by Recorded Income, Recorded Expenses, and Transfers Excluded.
+3. **Asymmetric Main Story (62% / 38%):**
+   - **Cash Flow Timeline (62%):** Daily accumulation curve rendered in sage (`#83AD96`) for income and coral (`#C77F78`) for expenses.
+   - **Spending by Category (38%):** Clean ranked horizontal bars displaying category names, exact rupee values, and percentage shares, replacing the legacy donut chart.
+4. **Action & Activity Split (50% / 50%):**
+   - **Budget Health Panel:** Displays spending against targets with thin progress bars and warning states for over-budget categories.
+   - **Recent Activity Panel:** Shows the latest 5 transactions with clear income/expense formatting and category pills.
+5. **Attention / Review Reminder Strip:** Alert card alerting users to low-confidence machine learning classifications awaiting human review.
 
 ---
 
-## 6. Audit Verdict & Implementation Plan
+## 5. Streamlit 1.66 Compatibility & Headless Testing
 
-The SpendStory architecture is solid, modular, and ready for redesign. All business logic, tests, and SQLite persistence are decoupled from presentation. The redesign will proceed across the planned 7 phases with zero regressions.
-
+- **Headless Test Compatibility:** Automated test suite (`tests/test_ui_smoke.py`) references `at.sidebar.radio(key="active_nav")`. The sidebar radio remains declared in Python for headless test execution, while CSS completely hides it on desktop (`display: none !important; pointer-events: none !important; visibility: hidden !important;`).
+- **Two-Way State Synchronization:** `active_nav` and `top_segmented_nav` synchronize automatically, allowing seamless browser navigation via top segmented pills as well as programmatic navigation in test runners.
+- **Shadow DOM Piercing:** Chart styles and custom cursor declarations are injected directly into `src/dashboard_charts.css` to pierce Streamlit component Shadow DOM boundaries.

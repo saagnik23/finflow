@@ -1,7 +1,7 @@
 const SVG_NS = "http://www.w3.org/2000/svg";
-const INCOME = "#78A98E"; // Mint accent
-const EXPENSE = "#202126"; // Charcoal
-const PALETTE = ["#78A98E", "#5E7C8D", "#8EA89D", "#C96F69", "#D4A451", "#202126", "#A0AEC0"];
+const INCOME = "#83AD96"; // Muted sage / mint positive
+const EXPENSE = "#C77F78"; // Muted coral expense
+const PALETTE = ["#83AD96", "#5E7C8D", "#8EA89D", "#C77F78", "#D6A451", "#202126", "#A0AEC0"];
 const CATEGORY_COLORS = new Map(
     ["Food", "Transport", "Education", "Bills", "Shopping", "Entertainment", "Other"]
         .map((category, index) => [category, PALETTE[index]]),
@@ -227,8 +227,8 @@ function renderTrend(root, rows, width, id) {
     }
 
     const highlight = svgNode(svg, "g", { visibility: "hidden", "pointer-events": "none" });
-    const band = svgNode(highlight, "rect", { y: top, height: bottom - top, width: 24, rx: 5, fill: "#b7b1ff", opacity: .22 });
-    const ruler = svgNode(highlight, "line", { y1: top, y2: bottom, stroke: "#635bee", "stroke-dasharray": "3 3" });
+    const band = svgNode(highlight, "rect", { y: top, height: bottom - top, width: 24, rx: 5, fill: "#E4F477", opacity: .35 });
+    const ruler = svgNode(highlight, "line", { y1: top, y2: bottom, stroke: "#202126", "stroke-dasharray": "3 3" });
     const dots = series.map(([, color]) => svgNode(highlight, "circle", {
         r: 4.4, fill: color, stroke: "#fff", "stroke-width": 1.7,
     }));

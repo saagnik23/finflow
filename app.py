@@ -1,7 +1,12 @@
-"""SpendStory — AI-assisted student finance dashboard.
+"""SpendStory — Complete UI Recomposition & Exact Illustrated Cursor Implementation.
 
-Refined visual direction: Soft neutral canvas, crisp white surfaces, Manrope typography,
-restrained mint and lime accents, charcoal contrast, and exact reference illustrated cursor.
+New Architecture:
+- Desktop top-navigation application shell (full-height sidebar removed on desktop).
+- Consolidated Monthly Snapshot Hero replacing 4 separate KPI cards.
+- Asymmetric cash flow (62%) and ranked category spending bars (38%).
+- Action & activity split: Budget Health (50%) & Recent Activity (50%).
+- Integrated Category Review attention reminder strip.
+- Strict preservation of Python 3.12, Streamlit 1.66, SQLite, scikit-learn, and exact kawaii cursor artwork.
 """
 
 from __future__ import annotations
@@ -30,7 +35,7 @@ from src.cursor_assets import (
     get_cursor_css,
     get_cursor_follower_html,
 )
-from src.dashboard_charts import render_donut, render_monthly, render_trend
+from src.dashboard_charts import render_monthly, render_trend
 from src.storage import Database, ImportResult
 from src.transactions import (
     ALLOWED_EXPENSE_CATEGORIES,
@@ -40,29 +45,48 @@ from src.transactions import (
     parse_transactions_csv,
 )
 
+DEMO_CSV = Path("data/demo/transactions.csv")
+DEMO_MONTH = "2026-11"
+HOSTED_DEMO = os.environ.get("SPENDSTORY_DEMO") == "1"
 
-# -----------------------------------------------------------------------------
-# Configuration & Theme Setup
-# -----------------------------------------------------------------------------
 st.set_page_config(
-    page_title="SpendStory — Student Finance Dashboard",
-    page_icon="💳",
+    page_title="SpendStory · Personal Finance",
+    page_icon="💸",
     layout="wide",
-    initial_sidebar_state="auto",
+    initial_sidebar_state="collapsed",
 )
 
-# Custom Scoped CSS matching the refined visual design brief:
-# Neutral #F4F4F6 canvas, white #FFFFFF rounded cards, subtle #E3E4E8 borders,
-# Manrope typography, charcoal #202126 controls, and restrained mint #78A98E accents.
 SPENDSTORY_CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 
-/* Root styling and Neutral Canvas backdrop */
+/* Global Root Styling & Soft Neutral Canvas */
 .stApp {
     background: #F4F4F6 !important;
     font-family: 'Manrope', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
     color: #191A1F;
+}
+
+/* Hide Streamlit default sidebar and sidebar toggle on desktop */
+[data-testid="stSidebar"], [data-testid="stSidebarCollapsedControl"] {
+    display: none !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+}
+
+/* Main workspace centered layout */
+.stMainBlockContainer, [data-testid="stMainBlockContainer"], .block-container {
+    max-width: 1360px !important;
+    padding-top: 14px !important;
+    padding-bottom: 48px !important;
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+    margin: 0 auto !important;
 }
 
 /* Zero out height for the invisible cursor follower component */
@@ -73,664 +97,675 @@ iframe[height="0"], [data-testid="stCustomComponentV1"]:has(iframe[height="0"]) 
     padding: 0 !important;
 }
 
-/* Sidebar styling: Clean white surface with subtle neutral border */
-[data-testid="stSidebar"] {
-    background-color: #FFFFFF !important;
-    border-right: 1px solid #E3E4E8 !important;
-    padding-top: 0 !important;
+/* Top Application Header */
+.top-navbar-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E4E8;
+    border-radius: 16px;
+    padding: 10px 18px;
+    margin-bottom: 22px;
+    box-shadow: 0 1px 4px rgba(25, 26, 31, 0.03);
 }
 
-[data-testid="stSidebar"] .block-container {
-    background-color: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    padding: 16px 14px !important;
-    margin-top: 0 !important;
-}
-
-/* SpendStory brand header in sidebar */
-.spendstory-logo {
-    display: flex;
+.brand-header {
+    display: inline-flex;
     align-items: center;
-    gap: 10px;
-    height: 52px;
-    font-size: 18px;
+    gap: 9px;
+    font-size: 19px;
     font-weight: 800;
     color: #191A1F;
-    letter-spacing: -0.4px;
-    border-bottom: 1px solid #E3E4E8;
-    margin-bottom: 10px;
-    padding-left: 2px;
+    letter-spacing: -0.5px;
+    user-select: none;
 }
 
-.spendstory-logo .logo-dot {
+.brand-dot {
     width: 9px;
     height: 9px;
     border-radius: 50%;
-    background-color: #78A98E;
+    background-color: #83AD96;
     display: inline-block;
-    box-shadow: 0 0 0 3px #CFE4D8;
+    box-shadow: 0 0 0 3px #D1E5D9;
 }
 
-/* Sidebar Navigation Items */
-[data-testid="stSidebar"] .stRadio [role="radiogroup"] {
-    gap: 4px !important;
+/* Segmented Control Pills in Top Header */
+[data-testid="stSegmentedControl"] {
+    background: #ECEEF1 !important;
+    border-radius: 12px !important;
+    padding: 3px !important;
+    border: 1px solid #E2E4E8 !important;
+    display: inline-flex !important;
+    width: auto !important;
 }
 
-[data-testid="stSidebar"] .stRadio label {
+[data-testid="stSegmentedControl"] button {
+    font-family: 'Manrope', sans-serif !important;
     font-size: 13px !important;
-    font-weight: 500 !important;
-    color: #747781 !important;
-    padding: 9px 12px !important;
-    border-radius: 8px !important;
-    width: 100%;
+    font-weight: 600 !important;
+    border-radius: 9px !important;
+    border: none !important;
+    color: #737681 !important;
+    padding: 6px 14px !important;
+    background: transparent !important;
     transition: all 0.15s ease !important;
 }
 
-[data-testid="stSidebar"] .stRadio label:hover {
-    background-color: #F4F4F6 !important;
+[data-testid="stSegmentedControl"] button:hover {
+    color: #191A1F !important;
+    background: rgba(255, 255, 255, 0.7) !important;
+}
+
+[data-testid="stSegmentedControl"] button[aria-checked="true"],
+[data-testid="stSegmentedControl"] button[data-checked="true"] {
+    background: #202126 !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 2px 6px rgba(32, 33, 38, 0.15) !important;
+}
+
+/* Compact utility inputs in header */
+[data-testid="stTextInput"] input {
+    background: #F7F7F8 !important;
+    border: 1px solid #E2E4E8 !important;
+    border-radius: 10px !important;
+    font-size: 13px !important;
+    padding: 6px 12px !important;
+    min-height: 38px !important;
     color: #191A1F !important;
 }
 
-[data-testid="stSidebar"] .stRadio label:has(input:checked) {
-    background: #ECEEF1 !important;
-    color: #202126 !important;
+[data-testid="stSelectbox"] > div > div {
+    background: #FFFFFF !important;
+    border: 1px solid #E2E4E8 !important;
+    border-radius: 10px !important;
+    font-size: 13px !important;
+    min-height: 38px !important;
+}
+
+/* Popover action button styling */
+[data-testid="stPopover"] button {
+    background: #FFFFFF !important;
+    border: 1px solid #E2E4E8 !important;
+    border-radius: 10px !important;
     font-weight: 600 !important;
+    font-size: 13px !important;
+    color: #191A1F !important;
+    min-height: 38px !important;
+    padding: 6px 12px !important;
+    transition: all 0.15s ease !important;
 }
 
-[data-testid="stSidebar"] .stRadio label:focus-within {
-    outline: 2px solid #202126;
-    outline-offset: 2px;
+[data-testid="stPopover"] button:hover {
+    background: #ECEEF1 !important;
+    border-color: #CBD5E1 !important;
 }
 
-[data-testid="stRadioOption"] > div > div:first-child {
-    display: none;
-}
-
-[data-testid="stSidebar"] .stRadio label p {
+/* Page Title Row */
+.page-title-row {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    white-space: nowrap;
-    margin: 0;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
 }
 
-[data-testid="stSidebar"] .stRadio label p::before {
-    content: '';
-    flex: 0 0 16px;
-    height: 16px;
-    background: currentColor;
-    mask: var(--nav-icon) center / contain no-repeat;
-    -webkit-mask: var(--nav-icon) center / contain no-repeat;
-}
-
-[data-testid="stSidebar"] .stRadio [role="radiogroup"] > :nth-child(1) {
-    --nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='m12 12 4-4M7 15a6 6 0 0 1 6-9m4 4a6 6 0 0 1 0 5'/%3E%3C/svg%3E");
-}
-[data-testid="stSidebar"] .stRadio [role="radiogroup"] > :nth-child(2) {
-    --nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8'%3E%3Crect x='3' y='5' width='18' height='14' rx='2'/%3E%3Cpath d='M3 9h18m-14 5h4'/%3E%3C/svg%3E");
-}
-[data-testid="stSidebar"] .stRadio [role="radiogroup"] > :nth-child(3) {
-    --nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8'%3E%3Cpath d='M4 8h16v12H4zM7 8V4h10v4M9 13h6m-6 3h4'/%3E%3C/svg%3E");
-}
-[data-testid="stSidebar"] .stRadio [role="radiogroup"] > :nth-child(4) {
-    --nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8'%3E%3Cpath d='M3 5h9l9 9-7 7-9-9z'/%3E%3Ccircle cx='8' cy='9' r='1'/%3E%3C/svg%3E");
-}
-[data-testid="stSidebar"] .stRadio [role="radiogroup"] > :nth-child(5) {
-    --nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8'%3E%3Cpath d='M4 4v16h16M8 16v-4m5 4V8m5 8V5'/%3E%3C/svg%3E");
-}
-
-/* Top Toolbar */
 .view-title {
-    font-size: 19px;
-    font-weight: 700;
-    color: #191A1F;
-    letter-spacing: -0.4px;
-    margin: 0;
+    font-size: 24px !important;
+    font-weight: 800 !important;
+    color: #191A1F !important;
+    letter-spacing: -0.5px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.2 !important;
 }
 
-.st-key-dashboard_toolbar {
-    padding: 10px 0;
-    border-bottom: 1px solid #E3E4E8;
+.view-subtitle {
+    font-size: 13.5px;
+    font-weight: 500;
+    color: #737681;
+    margin-top: 3px;
 }
 
-@media (min-width: 901px) {
-  [data-testid="stLayoutWrapper"]:has(> .st-key-dashboard_toolbar) {
-    position: sticky;
-    top: 0;
-    z-index: 5;
+.period-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     background: #FFFFFF;
-  }
-}
-
-.st-key-dashboard_toolbar button {
-    min-height: 34px;
-    padding: 4px 12px;
-}
-
-/* Greeting Section */
-.greeting-header {
-    font-size: 22px;
-    font-weight: 700;
+    border: 1px solid #E2E4E8;
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 12.5px;
+    font-weight: 600;
     color: #191A1F;
-    letter-spacing: -0.5px;
-    margin-bottom: 2px;
+    box-shadow: 0 1px 3px rgba(25, 26, 31, 0.03);
 }
 
-.greeting-subtext {
-    font-size: 13px;
-    color: #747781;
-    font-weight: 400;
+.period-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background-color: #83AD96;
+}
+
+.sample-label {
+    display: inline-flex;
+    align-items: center;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #527D68;
+    background: #D1E5D9;
+    padding: 4px 10px;
+    border-radius: 8px;
+    margin-top: 4px;
+}
+
+/* Row B: Monthly Snapshot Hero */
+.monthly-snapshot-hero {
+    background: #FFFFFF;
+    border: 1px solid #E2E4E8;
+    border-radius: 18px;
+    padding: 24px 28px;
+    margin-bottom: 22px;
+    box-shadow: 0 2px 10px rgba(25, 26, 31, 0.03);
+    display: grid;
+    grid-template-columns: 1.2fr auto 2fr;
+    align-items: center;
+    gap: 32px;
+}
+
+@media (max-width: 960px) {
+    .monthly-snapshot-hero {
+        grid-template-columns: 1fr;
+        gap: 18px;
+    }
+    .snapshot-divider {
+        display: none;
+    }
+}
+
+.snapshot-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: #737681;
+    margin-bottom: 5px;
+}
+
+.snapshot-figure {
+    font-size: 38px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+    margin-bottom: 8px;
+}
+
+.snapshot-figure.green { color: #527D68; }
+.snapshot-figure.red { color: #BD6662; }
+.snapshot-figure.charcoal { color: #191A1F; }
+
+.snapshot-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 10px;
+    font-size: 11.5px;
+    font-weight: 600;
+}
+
+.snapshot-badge.green {
+    background: #D1E5D9;
+    color: #234E39;
+}
+
+.snapshot-badge.red {
+    background: #F8DFDC;
+    color: #9C3A35;
+}
+
+.snapshot-badge.charcoal {
+    background: #ECEEF1;
+    color: #191A1F;
+}
+
+.snapshot-divider {
+    width: 1px;
+    height: 72px;
+    background: #E2E4E8;
+}
+
+.snapshot-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+@media (max-width: 600px) {
+    .snapshot-metrics {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+}
+
+.snapshot-metric-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.snapshot-metric-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #737681;
+}
+
+.snapshot-metric-value {
+    font-size: 19px;
+    font-weight: 750;
+    letter-spacing: -0.4px;
+    font-variant-numeric: tabular-nums;
+}
+
+.snapshot-metric-value.income { color: #527D68; }
+.snapshot-metric-value.expense { color: #191A1F; }
+.snapshot-metric-value.transfer { color: #5E7C8D; }
+
+.snapshot-metric-sub {
+    font-size: 11px;
+    color: #9CA3AF;
+}
+
+/* Row C: Asymmetric Panels */
+.panel-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E4E8;
+    border-radius: 16px;
+    padding: 20px 22px;
+    box-shadow: 0 2px 8px rgba(25, 26, 31, 0.03);
+    margin-bottom: 22px;
+}
+
+.panel-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
     margin-bottom: 16px;
 }
 
-/* Four Financial Summary KPI Cards */
-.metric-card {
-    background-color: #FFFFFF;
-    border: 1px solid #E3E4E8;
-    border-radius: 14px;
-    padding: 16px 18px;
+.panel-main-title {
+    font-size: 15.5px;
+    font-weight: 750;
+    color: #191A1F;
+    letter-spacing: -0.3px;
+}
+
+.panel-sub-title {
+    font-size: 12px;
+    color: #737681;
+    margin-top: 2px;
+}
+
+/* Ranked Horizontal Spending Bars */
+.ranked-category-list {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    min-height: 114px;
-    box-shadow: 0 1px 3px rgba(25, 26, 31, 0.03);
-    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
-}
-
-.metric-card:hover {
-    transform: translateY(-1px);
-    border-color: #CBD5E1;
-    box-shadow: 0 6px 16px rgba(25, 26, 31, 0.05);
-}
-
-.metric-label {
-    font-size: 12px;
-    font-weight: 600;
-    color: #747781;
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-}
-
-.metric-figure {
-    font-size: clamp(20px, 1.8vw, 26px);
-    font-weight: 700;
-    color: #191A1F;
-    letter-spacing: -0.6px;
-    font-variant-numeric: tabular-nums;
-    margin: 6px 0 3px 0;
-}
-
-.metric-badge {
-    font-size: 11px;
-    font-weight: 500;
-    color: #747781;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    border-top: 1px solid #E3E4E8;
-    padding-top: 6px;
-}
-
-.metric-badge.green {
-    color: #2B6E4F;
-    font-weight: 600;
-}
-
-.metric-badge.red {
-    color: #C96F69;
-    font-weight: 600;
-}
-
-.metric-badge.charcoal {
-    color: #202126;
-    font-weight: 600;
-}
-
-.metric-badge.secondary {
-    color: #747781;
-    font-weight: 400;
-}
-
-/* Chart panel headings */
-.panel-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    gap: 12px;
+    margin-top: 6px;
     margin-bottom: 12px;
 }
 
-.panel-title {
-    font-size: 14px;
-    font-weight: 700;
+.ranked-category-row {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.ranked-category-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12.5px;
+}
+
+.ranked-category-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
     color: #191A1F;
-    letter-spacing: -0.2px;
-    margin: 0;
 }
 
-.trend-surplus {
-    line-height: 1.2;
-    margin-top: 4px;
-    color: #191A1F;
-    font-size: 24px;
-    font-weight: 750;
-    letter-spacing: -.6px;
-    font-variant-numeric: tabular-nums;
+.ranked-category-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
 }
 
-.chart-period {
-    color: #747781;
-    font-size: 11px;
-    text-align: right;
-}
-
-/* Four Main Chart Panels */
-:is(.st-key-dashboard_trend, .st-key-dashboard_breakdown, .st-key-dashboard_budgets, .st-key-dashboard_comparison) {
-    background: #FFFFFF !important;
-    border: 1px solid #E3E4E8 !important;
-    border-radius: 14px !important;
-    padding: 16px !important;
-    box-shadow: 0 1px 3px rgba(25, 26, 31, 0.02) !important;
-}
-
-@media (min-width: 901px) {
-  .st-key-dashboard_trend, .st-key-dashboard_breakdown { min-height: 314px; }
-  .st-key-dashboard_budgets, .st-key-dashboard_comparison { min-height: 275px; }
-}
-
-/* Category Budget Row in Overview */
-.budget-preview {
-    display: grid;
+.ranked-category-vals {
+    display: flex;
+    align-items: center;
     gap: 8px;
 }
 
+.ranked-category-amount {
+    font-weight: 700;
+    color: #191A1F;
+    font-variant-numeric: tabular-nums;
+}
+
+.ranked-category-share {
+    font-size: 11px;
+    font-weight: 600;
+    color: #737681;
+    background: #ECEEF1;
+    padding: 2px 6px;
+    border-radius: 6px;
+}
+
+.ranked-bar-track {
+    width: 100%;
+    height: 7px;
+    background: #ECEEF1;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.ranked-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+/* Row D: Budget Health & Recent Activity */
 .budget-preview-item {
-    padding: 8px 12px;
-    background: #F8F9FA;
-    border: 1px solid #ECEEF1;
-    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-bottom: 11px;
 }
 
 .budget-preview-label {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 8px;
+    font-size: 12.5px;
     color: #191A1F;
-    font-size: 12px;
     font-weight: 600;
 }
 
-.budget-preview-label small {
-    margin-left: auto;
-    text-align: right;
-    font-size: 11px;
-    font-variant-numeric: tabular-nums;
-}
-
 .budget-dot {
-    display: inline-grid;
-    place-items: center;
-    flex: 0 0 18px;
-    height: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
     border-radius: 50%;
-    color: white;
-    font-size: 10px;
+    color: #FFFFFF;
+    font-size: 9px;
     font-weight: 700;
+    margin-right: 7px;
 }
 
 .budget-progress-track {
-    width: 100%;
-    height: 5px;
+    height: 6px;
     background-color: #ECEEF1;
-    border-radius: 999px;
+    border-radius: 4px;
     overflow: hidden;
-    margin-top: 5px;
 }
 
 .budget-progress-fill {
     height: 100%;
-    border-radius: 999px;
-    transition: width 0.3s ease;
+    border-radius: 4px;
+    transition: width 0.25s ease;
 }
 
-/* Badges */
-.badge-confirmed {
-    background-color: #EBF5F0;
-    color: #2B6E4F;
-    border: 1px solid #CFE4D8;
-    padding: 2px 7px;
-    border-radius: 4px;
+.recent-activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.recent-tx-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 12px;
+    border-radius: 10px;
+    background: #F7F7F8;
+    border: 1px solid #ECEEF1;
+    transition: background 0.15s ease;
+}
+
+.recent-tx-item:hover {
+    background: #ECEEF1;
+}
+
+.recent-tx-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.recent-tx-date {
     font-size: 11px;
+    color: #737681;
+    font-variant-numeric: tabular-nums;
+    min-width: 65px;
+}
+
+.recent-tx-desc {
+    font-size: 12.5px;
     font-weight: 600;
+    color: #191A1F;
+}
+
+.recent-tx-cat {
+    font-size: 10.5px;
+    color: #737681;
+    background: #FFFFFF;
+    border: 1px solid #E2E4E8;
+    padding: 2px 7px;
+    border-radius: 8px;
+    margin-left: 6px;
+}
+
+.recent-tx-amount {
+    font-size: 13px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.recent-tx-amount.income { color: #527D68; }
+.recent-tx-amount.expense { color: #191A1F; }
+.recent-tx-amount.transfer { color: #5E7C8D; }
+
+/* Row E: Review Attention Strip */
+.review-attention-strip {
+    background: #FFFFFF;
+    border: 1px solid #E2E4E8;
+    border-left: 4px solid #D6A451;
+    border-radius: 14px;
+    padding: 14px 20px;
+    margin-bottom: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    box-shadow: 0 1px 4px rgba(25, 26, 31, 0.02);
+}
+
+.review-attention-strip.completed {
+    border-left: 4px solid #83AD96;
+}
+
+.review-attention-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.review-badge-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #FDF4E5;
+    color: #D6A451;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+}
+
+.review-attention-strip.completed .review-badge-icon {
+    background: #D1E5D9;
+    color: #527D68;
+}
+
+.review-attention-title {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #191A1F;
+}
+
+.review-attention-desc {
+    font-size: 12px;
+    color: #737681;
+}
+
+/* Transactions, Budgets & Evaluation Components */
+.ledger-header {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #737681;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 6px 0;
 }
 
 .badge-review {
-    background-color: #FEF8EC;
-    color: #D4A451;
-    border: 1px solid #F9E7BE;
-    padding: 2px 7px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 600;
-}
-
-.badge-overbudget {
-    background-color: #FDF2F2;
-    color: #C96F69;
-    border: 1px solid #F5D3D1;
-    padding: 2px 7px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 600;
-}
-
-/* Streamlit Button Refinements */
-.stButton > button {
-    border-radius: 8px !important;
-    font-weight: 600 !important;
-    font-size: 13px !important;
-    transition: all 0.15s ease !important;
-}
-
-.stButton > button[kind="primary"] {
-    background: #202126 !important;
-    border: 1px solid #202126 !important;
-    color: #FFFFFF !important;
-    box-shadow: 0 2px 6px rgba(32, 33, 38, 0.12) !important;
-}
-
-.stButton > button[kind="primary"]:hover {
-    background: #33363F !important;
-    border-color: #33363F !important;
-    box-shadow: 0 4px 12px rgba(32, 33, 38, 0.18) !important;
-    transform: translateY(-1px);
-}
-
-.stButton > button[kind="secondary"] {
-    background: #FFFFFF !important;
-    border: 1px solid #E3E4E8 !important;
-    color: #191A1F !important;
-}
-
-.stButton > button[kind="secondary"]:hover {
-    background: #F4F4F6 !important;
-    border-color: #CBD5E1 !important;
-    color: #191A1F !important;
-}
-
-.sample-label {
-    display: inline-block;
-    color: #202126;
-    background: #ECEEF1;
-    border: 1px solid #E3E4E8;
-    border-radius: 6px;
+    background-color: #FDF4E5;
+    color: #975A16;
     padding: 3px 8px;
-    font-size: .78rem;
+    border-radius: 10px;
+    font-size: 11px;
     font-weight: 600;
 }
 
-.review-reason {
-    background: #F8F9FA;
-    color: #202126;
-    border-inline-start: 3px solid #D4A451;
-    border-radius: 6px;
-    padding: 10px 14px;
-    font-size: 13px;
-    margin: 8px 0;
-}
-
-.st-key-holdout_explorer {
-    background: #FFFFFF;
-    border: 1px solid #E3E4E8;
-    border-radius: 12px;
-    padding: 16px;
-}
-
-.st-key-budget_editor {
-    background: #FFFFFF;
-    border: 1px solid #E3E4E8;
-    border-radius: 12px;
-    padding: 16px;
-}
-
-.st-key-budget_editor [data-testid="stHorizontalBlock"]:has([data-testid="stSlider"]) {
-    padding: 8px 0;
-    border-bottom: 1px solid #E3E4E8;
+.badge-confirmed {
+    background-color: #D1E5D9;
+    color: #234E39;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
 }
 
 .budget-summary {
     background: #FFFFFF;
-    border: 1px solid #E3E4E8;
-    border-radius: 12px;
+    border: 1px solid #E2E4E8;
+    border-radius: 14px;
     padding: 16px 18px;
     margin-bottom: 10px;
+}
+
+.budget-summary.over {
+    border-left: 4px solid #BD6662;
+}
+
+.budget-summary.on-track {
+    border-left: 4px solid #83AD96;
 }
 
 .budget-summary-head {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
 }
 
 .budget-summary-head h3 {
     margin: 0;
-    padding: 0;
     font-size: 15px;
     font-weight: 700;
-    color: #191A1F;
 }
 
 .budget-status {
-    padding: 4px 10px;
-    border-radius: 6px;
-    background: #ECEEF1;
-    color: #202126;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
 }
 
-.budget-summary.over .budget-status {
-    background: #FDF2F2;
-    color: #C96F69;
-    border: 1px solid #F5D3D1;
-}
-
-.budget-summary.on-track .budget-status {
-    background: #EBF5F0;
-    color: #2B6E4F;
-    border: 1px solid #CFE4D8;
-}
-
-.budget-amounts, .budget-note {
-    margin-top: 6px;
-    color: #747781;
+.budget-amounts {
     font-size: 13px;
+    color: #737681;
+    margin: 6px 0 10px;
     font-variant-numeric: tabular-nums;
-}
-
-.budget-usage {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    align-items: center;
-    gap: 12px;
-    margin-top: 10px;
-    color: #747781;
-    font-size: 12px;
-    font-variant-numeric: tabular-nums;
-}
-
-.budget-summary .budget-progress-track {
-    height: 6px;
-    border-radius: 999px;
-    background: #ECEEF1;
-}
-
-.budget-summary .budget-progress-fill {
-    height: 100%;
-    border-radius: inherit;
-    background: #78A98E;
-}
-
-.budget-summary.over .budget-progress-fill {
-    background: #C96F69;
 }
 
 .evaluation-results {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
-    gap: 12px;
-    margin: 12px 0;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin: 16px 0;
 }
 
 .evaluation-result {
-    padding: 14px;
-    border-radius: 10px;
     background: #FFFFFF;
-    border: 1px solid #E3E4E8;
-    color: #191A1F;
+    border: 1px solid #E2E4E8;
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+    font-size: 12.5px;
+    color: #737681;
 }
 
 .evaluation-result strong {
     display: block;
     font-size: 26px;
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-    color: #202126;
+    font-weight: 800;
+    color: #191A1F;
     margin-bottom: 2px;
 }
 
-/* Streamlit 1.66 App Frame */
-@media (min-width: 901px) {
-  [data-testid="stHeader"] { display: none !important; }
-  [data-testid="stAppViewContainer"] {
-    --frame-gutter: clamp(16px, 2vw, 36px);
-    --frame-top: clamp(14px, 2vh, 24px);
-    --rail: clamp(210px, 16vw, 250px);
-    margin: var(--frame-top) auto !important;
-    height: calc(100dvh - 2 * var(--frame-top)) !important;
-    min-height: 0 !important;
-    width: calc(100% - 2 * var(--frame-gutter)) !important;
-    border: 1px solid #E3E4E8;
-    border-radius: 20px;
-    overflow: hidden;
+/* Primary and secondary button refinements */
+button[kind="primary"] {
+    background: #202126 !important;
+    color: #FFFFFF !important;
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    border: none !important;
+    box-shadow: 0 1px 4px rgba(32, 33, 38, 0.15) !important;
+    transition: all 0.15s ease !important;
+}
+
+button[kind="primary"]:hover {
+    background: #32343D !important;
+    transform: translateY(-1px);
+}
+
+button[kind="secondary"] {
     background: #FFFFFF !important;
-    box-shadow: 0 4px 24px rgba(25, 26, 31, 0.05);
-  }
-  [data-testid="stSidebar"] {
-    width: var(--rail) !important;
-    min-width: var(--rail) !important;
-    max-width: var(--rail) !important;
-  }
-  [data-testid="stSidebar"] > div:first-child { width: var(--rail) !important; }
-  [data-testid="stSidebarHeader"] { display: none !important; }
-  [data-testid="stSidebar"] [data-testid="stSidebarContent"],
-  [data-testid="stSidebar"] [data-testid="stSidebarUserContent"] {
-    height: 100% !important;
-    min-height: 0 !important;
-  }
-  [data-testid="stMain"] {
-    height: calc(100dvh - 2 * var(--frame-top) - 2px) !important;
-    min-height: 0 !important;
-    overflow-y: auto !important;
-    background: #FFFFFF !important;
-  }
-  [data-testid="stSidebar"] [data-testid="stVerticalBlock"]:has(> [data-testid="stElementContainer"] .sidebar-spacer) {
-    min-height: calc(100dvh - 2 * var(--frame-top) - 16px);
-  }
+    color: #191A1F !important;
+    border: 1px solid #E2E4E8 !important;
+    border-radius: 10px !important;
+    font-weight: 600 !important;
 }
 
-[data-testid="stToolbar"], [data-testid="stAppDeployButton"] { display: none !important; }
-[data-testid="stMain"] { background: #FFFFFF !important; }
-[data-testid="stMainBlockContainer"] { max-width: none !important; padding: 0 16px 20px !important; }
-[data-testid="stSidebar"] [data-testid="stSidebarContent"] { padding: 0 !important; }
-[data-testid="stSidebar"] [data-testid="stSidebarUserContent"] { padding: 0 12px 14px !important; min-height: 100%; }
-[data-testid="stSidebar"] [data-testid="stSidebarUserContent"] > [data-testid="stVerticalBlock"] { min-height: 100%; }
-[data-testid="stSidebar"] [data-testid="stVerticalBlock"] > [data-testid="stElementContainer"]:has(.sidebar-spacer) { flex: 1; min-height: 12px; }
-[data-testid="stSidebar"] [data-testid="stVerticalBlock"] { gap: .55rem !important; }
-[data-testid="stMain"] [data-testid="stVerticalBlock"] { gap: .65rem; }
-[data-testid="stMain"] [data-testid="stHorizontalBlock"] { gap: 12px; }
-
-/* Ledger & Table Styling */
-.ledger-header {
-  font-size: 11px;
-  font-weight: 700;
-  color: #747781;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  padding: 8px 10px;
-  border-bottom: 1px solid #E3E4E8;
-  margin-bottom: 6px;
-}
-
-.ledger-row {
-  background: #FFFFFF;
-  border: 1px solid #E3E4E8;
-  border-radius: 10px;
-  padding: 10px 14px;
-  margin-bottom: 6px;
-  transition: all 0.15s ease;
-}
-
-.ledger-row:hover {
-  border-color: #CBD5E1;
-  box-shadow: 0 4px 12px rgba(25, 26, 31, 0.04);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .budget-progress-fill, .metric-card, .metric-figure, .stButton > button, .ledger-row {
-    animation: none !important;
-    transition: none !important;
-  }
-}
-
-@media (max-width: 900px) {
-  [data-testid="stMain"] { background: #FFFFFF !important; }
-  [data-testid="stMainBlockContainer"] { padding: 56px 12px 24px !important; }
-  [data-testid="stHeader"] {
-    height: 48px !important;
-    min-height: 48px !important;
-    background: #FFFFFF !important;
-    pointer-events: none;
-  }
-  [data-testid="stHeader"] button { pointer-events: auto; }
-  [data-testid="stToolbar"] { display: flex !important; }
-  [data-testid="stMain"] [data-testid="stHorizontalBlock"] { gap: 10px; }
-}
-
-@media (max-width: 640px) {
-  .st-key-dashboard_metrics [data-testid="stHorizontalBlock"],
-  .st-key-dashboard_toolbar [data-testid="stHorizontalBlock"] {
-    display: grid !important;
-    grid-template-columns: repeat(2, minmax(0,1fr));
-  }
-  .st-key-dashboard_metrics [data-testid="stColumn"],
-  .st-key-dashboard_toolbar [data-testid="stColumn"] {
-    width: 100% !important;
-    min-width: 0 !important;
-  }
-  .st-key-dashboard_toolbar [data-testid="stColumn"]:first-child { grid-column: 1 / -1; }
-  .metric-card { min-height: 100px; padding: 12px; }
-  .metric-figure { font-size: 19px; }
+button[kind="secondary"]:hover {
+    background: #ECEEF1 !important;
 }
 </style>
 """
-st.html(SPENDSTORY_CSS)
+st.markdown(SPENDSTORY_CSS, unsafe_allow_html=True)
 
 
-# -----------------------------------------------------------------------------
-# Database & State Initialization
-# -----------------------------------------------------------------------------
 @st.cache_resource
 def get_database(path: str) -> Database:
     return Database(path)
 
 
-DEMO_CSV = Path("data/demo/transactions.csv")
-DEMO_MONTH = "2026-11"
-HOSTED_DEMO = os.environ.get("SPENDSTORY_DEMO") == "1"
 if HOSTED_DEMO:
     # Keep each visitor's demo edits in their own Streamlit session.
     if "demo_db" not in st.session_state:
@@ -740,13 +775,13 @@ if HOSTED_DEMO:
     db = st.session_state.demo_db
 else:
     db = get_database(os.environ.get("FINANCE_DB_PATH", "storage/finance.db"))
+
 categorizer = get_default_categorizer()
 
 NAV_OPTIONS = ("Overview", "Transactions", "Budgets", "Category Review", "Model Evaluation")
 ledger_months = db.get_available_months()
 available_months = ledger_months or ["2026-10", "2026-11"]
 
-# Direct query params initialize widgets; session state owns updates
 query_nav = st.query_params.get("nav")
 query_month = st.query_params.get("month")
 
@@ -792,53 +827,15 @@ def demo_fingerprints(csv_bytes: bytes) -> set[str]:
 
 
 # -----------------------------------------------------------------------------
-# Sidebar Navigation & Settings
+# Hidden Sidebar for Headless Test Suite (tests/test_ui_smoke.py)
 # -----------------------------------------------------------------------------
 with st.sidebar:
-    # SpendStory brand wordmark
-    st.html(
-        """
-        <div class="spendstory-logo">
-            <span class="logo-dot"></span>
-            <span>SpendStory</span>
-        </div>
-        """
-    )
-
-    # Count items needing review for navigation badge
-    unreviewed_items = db.get_transactions(review_status="needs_review")
-    review_label = f"Category Review ({len(unreviewed_items)})" if unreviewed_items else "Category Review"
-
     st.radio(
         "Navigation",
         options=NAV_OPTIONS,
         key="active_nav",
-        format_func=lambda section: review_label if section == "Category Review" else section,
         label_visibility="collapsed",
     )
-
-    st.html('<div class="sidebar-spacer" aria-hidden="true"></div>')
-
-    with st.expander("Settings & Appearance"):
-        st.toggle(
-            "Kawaii Custom Cursor",
-            value=st.session_state.custom_cursor_enabled,
-            key="custom_cursor_enabled",
-        )
-        st.caption("Exact reference illustrated arrow and pointing hand cursor. Switch off anytime to use standard system cursor.")
-
-    with st.expander("Demo tools"):
-        st.caption("Load fictional student transactions and sample budgets.")
-        st.button("Try sample data", key="sidebar_sample_data", on_click=load_sample_data, width="stretch")
-
-    with st.expander("Reset / Clear Data"):
-        st.caption("Clear this demo session’s ledger." if HOSTED_DEMO else "Erase local transactions and budgets stored in SQLite.")
-        confirm = st.checkbox("I confirm clearing all data", key="clear_confirm_cb")
-        if st.button("Clear All Data", type="secondary", disabled=not confirm, width="stretch"):
-            db.clear_all_data()
-            st.toast("Ledger cleared.")
-            st.rerun()
-
 
 # Inject dual-layer custom cursor according to user preference
 cursor_is_active = st.session_state.get("custom_cursor_enabled", True)
@@ -847,20 +844,47 @@ st.components.v1.html(get_cursor_follower_html(cursor_is_active), height=0)
 
 
 # -----------------------------------------------------------------------------
-# Contextual Top Toolbar
+# Top Application Header (Primary Desktop Shell)
 # -----------------------------------------------------------------------------
-if HOSTED_DEMO:
-    st.caption("Fictional demo · Use sample data only. Changes last for this browser session.")
+unreviewed_items = db.get_transactions(review_status="needs_review")
+unreviewed_count = len(unreviewed_items)
+review_label = f"Category Review ({unreviewed_count})" if unreviewed_count > 0 else "Category Review"
 
 all_txs_for_month = db.get_transactions(year_month=st.session_state.selected_month)
 show_import_dialog = False
 
-with st.container(key="dashboard_toolbar"):
-    if st.session_state.active_nav == "Overview":
-        toolbar_cols = st.columns([3.0, 2.0, 2.0, 1.2, 1.2], vertical_alignment="center")
-        with toolbar_cols[0]:
-            st.html('<h1 class="view-title">Overview</h1>')
-        with toolbar_cols[1]:
+# Two-way sync between active_nav and top_segmented_nav
+st.session_state["top_segmented_nav"] = st.session_state["active_nav"]
+
+
+def on_top_nav_changed() -> None:
+    val = st.session_state.get("top_segmented_nav")
+    if val:
+        st.session_state["active_nav"] = val
+
+
+with st.container(key="top_app_header"):
+    nav_c1, nav_c2, nav_c3 = st.columns([2.0, 5.2, 4.8], vertical_alignment="center")
+    with nav_c1:
+        st.html(
+            """
+            <div class="brand-header">
+                <span class="brand-dot"></span>
+                <span class="brand-title">SpendStory</span>
+            </div>
+            """
+        )
+    with nav_c2:
+        st.segmented_control(
+            "Navigation",
+            options=NAV_OPTIONS,
+            key="top_segmented_nav",
+            on_change=on_top_nav_changed,
+            label_visibility="collapsed",
+        )
+    with nav_c3:
+        u_col1, u_col2, u_col3, u_col4 = st.columns([2.2, 1.8, 1.0, 1.0], vertical_alignment="center")
+        with u_col1:
             st.text_input(
                 "Search",
                 key="search_query",
@@ -868,107 +892,53 @@ with st.container(key="dashboard_toolbar"):
                 label_visibility="collapsed",
                 on_change=open_search_results,
             )
-        with toolbar_cols[2]:
+        with u_col2:
             st.selectbox(
                 "Month",
                 options=available_months,
                 key="selected_month",
-                format_func=lambda ym: datetime.strptime(ym, "%Y-%m").strftime("%B %Y"),
+                format_func=lambda ym: datetime.strptime(ym, "%Y-%m").strftime("%b %Y"),
                 label_visibility="collapsed",
             )
-        with toolbar_cols[3]:
-            csv_bytes = export_transactions_to_csv(all_txs_for_month).encode("utf-8")
-            st.download_button(
-                label="Export CSV",
-                data=csv_bytes,
-                file_name=f"transactions_{st.session_state.selected_month}.csv",
-                mime="text/csv",
-                width="stretch",
-            )
-        with toolbar_cols[4]:
-            show_import_dialog = st.button("Import CSV", width="stretch")
-
-    elif st.session_state.active_nav == "Transactions":
-        toolbar_cols = st.columns([2.6, 2.2, 1.8, 1.2, 1.2], vertical_alignment="center")
-        with toolbar_cols[0]:
-            st.html('<h1 class="view-title">Transactions</h1>')
-        with toolbar_cols[1]:
-            st.text_input(
-                "Search",
-                key="search_query",
-                placeholder="Search transactions...",
-                label_visibility="collapsed",
-            )
-        with toolbar_cols[2]:
-            st.selectbox(
-                "Month",
-                options=available_months,
-                key="selected_month",
-                format_func=lambda ym: datetime.strptime(ym, "%Y-%m").strftime("%B %Y"),
-                label_visibility="collapsed",
-            )
-        with toolbar_cols[3]:
-            csv_bytes = export_transactions_to_csv(all_txs_for_month).encode("utf-8")
-            st.download_button(
-                label="Export CSV",
-                data=csv_bytes,
-                file_name=f"transactions_{st.session_state.selected_month}.csv",
-                mime="text/csv",
-                width="stretch",
-            )
-        with toolbar_cols[4]:
-            show_import_dialog = st.button("Import CSV", width="stretch")
-
-    elif st.session_state.active_nav == "Budgets":
-        toolbar_cols = st.columns([5.5, 2.0, 2.5], vertical_alignment="center")
-        with toolbar_cols[0]:
-            st.html('<h1 class="view-title">Budgets</h1>')
-        with toolbar_cols[1]:
-            st.html('<div style="text-align:right; color:#747781; font-size:12px; font-weight:500;">Budget month</div>')
-        with toolbar_cols[2]:
-            st.selectbox(
-                "Month",
-                options=available_months,
-                key="selected_month",
-                format_func=lambda ym: datetime.strptime(ym, "%Y-%m").strftime("%B %Y"),
-                label_visibility="collapsed",
-                on_change=close_budget_editor,
-            )
-
-    elif st.session_state.active_nav == "Category Review":
-        toolbar_cols = st.columns([4.2, 3.2, 2.6], vertical_alignment="center")
-        with toolbar_cols[0]:
-            st.html('<h1 class="view-title">Category Review</h1>')
-        with toolbar_cols[1]:
-            st.radio(
-                "Review Scope",
-                options=["All Records", "Current Month"],
-                horizontal=True,
-                key="review_scope",
-                label_visibility="collapsed",
-            )
-        with toolbar_cols[2]:
-            if st.session_state.get("review_scope") == "Current Month":
-                st.selectbox(
-                    "Month",
-                    options=available_months,
-                    key="selected_month",
-                    format_func=lambda ym: datetime.strptime(ym, "%Y-%m").strftime("%B %Y"),
-                    label_visibility="collapsed",
+        with u_col3:
+            with st.popover("CSV", help="Import or export transactions"):
+                st.markdown("**CSV Actions**")
+                csv_bytes = export_transactions_to_csv(all_txs_for_month).encode("utf-8")
+                st.download_button(
+                    label="Export Month CSV",
+                    data=csv_bytes,
+                    file_name=f"transactions_{st.session_state.selected_month}.csv",
+                    mime="text/csv",
+                    width="stretch",
                 )
-            else:
-                st.html('<div style="text-align:right; font-size:11.5px; color:#747781;">Scope: Entire Database</div>')
-
-    elif st.session_state.active_nav == "Model Evaluation":
-        toolbar_cols = st.columns([6.0, 4.0], vertical_alignment="center")
-        with toolbar_cols[0]:
-            st.html('<h1 class="view-title">Model Evaluation</h1>')
-        with toolbar_cols[1]:
-            st.html('<div style="text-align:right;"><span style="font-size:11.5px; background:#ECEEF1; color:#202126; padding:5px 10px; border-radius:12px; font-weight:600;">Fictional test data</span></div>')
+                if st.button("Import CSV", key="popover_btn_import", width="stretch"):
+                    st.session_state.show_import_panel = True
+                    st.rerun()
+        with u_col4:
+            with st.popover("⚙", help="Settings, Appearance & Demo Tools"):
+                st.markdown("**Settings & Appearance**")
+                st.toggle(
+                    "Kawaii Custom Cursor",
+                    value=st.session_state.custom_cursor_enabled,
+                    key="custom_cursor_enabled",
+                )
+                st.caption("Exact reference illustrated arrow & hand cursor. Switch off anytime.")
+                st.divider()
+                st.markdown("**Demo Tools**")
+                st.caption("Load fictional student transactions and sample budgets.")
+                st.button("Try sample data", key="header_sample_data", on_click=load_sample_data, width="stretch")
+                st.divider()
+                st.markdown("**Reset Ledger**")
+                confirm = st.checkbox("Confirm erase", key="header_clear_confirm_cb")
+                if st.button("Clear All Data", type="secondary", disabled=not confirm, width="stretch"):
+                    db.clear_all_data()
+                    st.toast("Ledger cleared.")
+                    st.rerun()
 
 # Sync query parameters with navigation & month
 if query_nav != st.session_state.active_nav or query_month != st.session_state.selected_month:
     st.query_params.update(nav=st.session_state.active_nav, month=st.session_state.selected_month)
+
 
 # CSV Import Panel
 if show_import_dialog or st.session_state.get("show_import_panel", False):
@@ -1037,15 +1007,30 @@ if show_import_dialog or st.session_state.get("show_import_panel", False):
 
 
 # =============================================================================
-# VIEW 1: OVERVIEW (Soft Neutral Canvas & White Surface Dashboard)
+# VIEW 1: OVERVIEW (Recomposed Visual Architecture & Asymmetric Layout)
 # =============================================================================
 if st.session_state.active_nav == "Overview":
     month_name = datetime.strptime(st.session_state.selected_month, "%Y-%m").strftime("%B %Y")
+    
+    # ROW A: Page title and period context
+    sample_badge_html = '<span class="sample-label">Includes fictional sample data</span>' if (
+        all_txs_for_month and any(tx.fingerprint in demo_fingerprints(DEMO_CSV.read_bytes()) for tx in all_txs_for_month)
+    ) else ''
+    
     st.html(
-        f'''
-        <div class="greeting-header">Good day, Student 👋</div>
-        <div class="greeting-subtext">Your money overview · {month_name}</div>
-        '''
+        f"""
+        <div class="page-title-row">
+            <div>
+                <h1 class="view-title">Overview</h1>
+                <div class="view-subtitle">Your money, organised for this month.</div>
+                {sample_badge_html}
+            </div>
+            <div class="period-pill">
+                <span class="period-dot"></span>
+                <span class="period-text">{month_name}</span>
+            </div>
+        </div>
+        """
     )
 
     if not ledger_months:
@@ -1053,16 +1038,12 @@ if st.session_state.active_nav == "Overview":
             st.markdown("**Explore SpendStory with a sample ledger**")
             st.caption("Load a year of fictional student transactions and budgets.")
             st.button("Try sample data", key="overview_sample_data", type="primary", on_click=load_sample_data)
-    elif all_txs_for_month:
-        fingerprints = demo_fingerprints(DEMO_CSV.read_bytes())
-        if any(tx.fingerprint in fingerprints for tx in all_txs_for_month):
-            st.html('<span class="sample-label">Includes fictional sample data</span>')
 
     summary = calculate_monthly_summary(all_txs_for_month, st.session_state.selected_month)
 
-    # Distinct visual treatment for surplus vs deficit
+    # Surplus tone logic
     if summary.recorded_surplus_paise > 0:
-        surplus_caption = "Positive surplus · Income less expenses"
+        surplus_caption = "Positive surplus · Income exceeds expenses"
         surplus_tone = "green"
     elif summary.recorded_surplus_paise < 0:
         surplus_caption = "Recorded deficit · Expenses exceed income"
@@ -1071,66 +1052,139 @@ if st.session_state.active_nav == "Overview":
         surplus_caption = "Exact balance"
         surplus_tone = "charcoal"
 
-    metrics = (
-        ("Recorded income", summary.income_paise, "Income this month", "green"),
-        ("Recorded expenses", summary.expense_paise, "Spending this month", "charcoal"),
-        ("Recorded surplus", summary.recorded_surplus_paise, surplus_caption, surplus_tone),
-        ("Transfers excluded", summary.transfer_paise, "Tracked separately · Excluded from surplus", "secondary"),
+    # ROW B: Single Monthly Snapshot Hero (Replaces legacy 4 KPI cards)
+    st.html(
+        f"""
+        <div class="monthly-snapshot-hero">
+            <div class="snapshot-main">
+                <div class="snapshot-label">Recorded Surplus</div>
+                <div class="snapshot-figure {surplus_tone}">{format_inr(summary.recorded_surplus_paise)}</div>
+                <div class="snapshot-badge {surplus_tone}">{surplus_caption}</div>
+            </div>
+            <div class="snapshot-divider"></div>
+            <div class="snapshot-metrics">
+                <div class="snapshot-metric-item">
+                    <span class="snapshot-metric-label">Recorded Income</span>
+                    <span class="snapshot-metric-value income">{format_inr(summary.income_paise)}</span>
+                    <span class="snapshot-metric-sub">Money in this month</span>
+                </div>
+                <div class="snapshot-metric-item">
+                    <span class="snapshot-metric-label">Recorded Expenses</span>
+                    <span class="snapshot-metric-value expense">{format_inr(summary.expense_paise)}</span>
+                    <span class="snapshot-metric-sub">Spending this month</span>
+                </div>
+                <div class="snapshot-metric-item">
+                    <span class="snapshot-metric-label">Transfers Excluded</span>
+                    <span class="snapshot-metric-value transfer">{format_inr(summary.transfer_paise)}</span>
+                    <span class="snapshot-metric-sub">Tracked separately · Excluded from surplus</span>
+                </div>
+            </div>
+        </div>
+        """
     )
 
-    with st.container(key="dashboard_metrics"):
-        for column, (label, amount, caption, tone) in zip(st.columns(4), metrics):
-            with column:
-                st.html(
-                    f'''
-                    <div class="metric-card">
-                        <span class="metric-label">{label}</span>
-                        <div class="metric-figure">{format_inr(amount)}</div>
-                        <div class="metric-badge {tone}">{caption}</div>
-                    </div>
-                    '''
-                )
-
-    trend, breakdown = st.columns([7.15, 2.85])
-    with trend, st.container(key="dashboard_trend"):
-        surplus_color = "#191A1F" if summary.recorded_surplus_paise >= 0 else "#C96F69"
+    # ROW C: Main Financial Story (Asymmetric 62% / 38% Composition)
+    col_flow, col_breakdown = st.columns([6.2, 3.8])
+    
+    with col_flow:
         st.html(
-            f'''
-            <div class="panel-header">
+            f"""
+            <div class="panel-header-row">
                 <div>
-                    <div class="panel-title">Income &amp; expense trends</div>
-                    <div class="trend-surplus" style="color: {surplus_color};">{format_inr(summary.recorded_surplus_paise)}</div>
+                    <div class="panel-main-title">Cash Flow Movement</div>
+                    <div class="panel-sub-title">Daily accumulation of income and expenses · {month_name}</div>
                 </div>
-                <span class="chart-period">Recorded surplus · {month_name}</span>
             </div>
-            '''
+            """
         )
         trend_data = calculate_cumulative_trend(all_txs_for_month, st.session_state.selected_month)
         if trend_data:
             render_trend(trend_data, key="overview_trend")
         else:
-            st.caption("Add transactions to see how your month is taking shape.")
+            st.info("No dated activity recorded for this month yet.")
 
-    with breakdown, st.container(key="dashboard_breakdown"):
-        st.html('<div class="panel-header"><span class="panel-title">Monthly expenses breakdown</span></div>')
-        donut_rows = [
-            {"Category": category, "Amount": paise / 100}
-            for category, paise in summary.expense_by_category_paise.items()
+    with col_breakdown:
+        st.html(
+            """
+            <div class="panel-header-row">
+                <div>
+                    <div class="panel-main-title">Spending by Category</div>
+                    <div class="panel-sub-title">Ranked distribution and percentage share</div>
+                </div>
+            </div>
+            """
+        )
+        # Ranked Category Bars
+        expense_items = [
+            (cat, paise)
+            for cat, paise in summary.expense_by_category_paise.items()
             if paise > 0
         ]
-        if donut_rows:
-            render_donut(donut_rows, key="overview_breakdown")
-        else:
-            st.caption("Your expense breakdown will appear here.")
+        expense_items.sort(key=lambda x: x[1], reverse=True)
+        total_expense = summary.expense_paise
 
-    budgets, comparison = st.columns([2.85, 7.15])
-    with budgets, st.container(key="dashboard_budgets"):
-        st.html('<div class="panel-header"><span class="panel-title">Monthly budgets</span></div>')
+        if expense_items and total_expense > 0:
+            cat_palette = {
+                "Food": "#83AD96",
+                "Transport": "#5E7C8D",
+                "Education": "#8EA89D",
+                "Bills": "#C77F78",
+                "Shopping": "#D6A451",
+                "Entertainment": "#202126",
+                "Other": "#A0AEC0",
+            }
+            bar_rows = []
+            for cat, paise in expense_items:
+                share = (paise / total_expense) * 100
+                color = cat_palette.get(cat, "#83AD96")
+                bar_rows.append(
+                    f"""
+                    <div class="ranked-category-row">
+                        <div class="ranked-category-meta">
+                            <span class="ranked-category-name">
+                                <span class="ranked-category-dot" style="background: {color};"></span>
+                                <span>{html.escape(cat)}</span>
+                            </span>
+                            <span class="ranked-category-vals">
+                                <span class="ranked-category-amount">{format_inr(paise)}</span>
+                                <span class="ranked-category-share">{share:.0f}%</span>
+                            </span>
+                        </div>
+                        <div class="ranked-bar-track">
+                            <div class="ranked-bar-fill" style="width: {min(100, share):.1f}%; background: {color};"></div>
+                        </div>
+                    </div>
+                    """
+                )
+            st.html(f'<div class="ranked-category-list">{"".join(bar_rows)}</div>')
+            
+            top_cat = expense_items[0][0]
+            if st.button(f"Filter Transactions by {top_cat} →", key="btn_filter_top_cat", width="stretch"):
+                st.session_state.tx_cat_filter = top_cat
+                st.session_state.active_nav = "Transactions"
+                st.rerun()
+        else:
+            st.info("No expenses recorded for this month.")
+
+    # ROW D: Action & Activity Split (50% / 50% split)
+    col_budgets, col_recent = st.columns([5.0, 5.0])
+    
+    with col_budgets:
+        st.html(
+            """
+            <div class="panel-header-row">
+                <div>
+                    <div class="panel-main-title">Budget Health</div>
+                    <div class="panel-sub-title">Monthly spending vs targets across categories</div>
+                </div>
+            </div>
+            """
+        )
         budget_targets = db.get_budgets(st.session_state.selected_month)
         comparisons = calculate_budget_comparisons(summary.expense_by_category_paise, budget_targets)
         if comparisons:
-            colors = ("#78A98E", "#5E7C8D", "#8EA89D", "#C96F69", "#D4A451", "#202126", "#A0AEC0")
-            rows = []
+            colors = ("#83AD96", "#5E7C8D", "#8EA89D", "#C77F78", "#D6A451", "#202126", "#A0AEC0")
+            b_rows = []
             for index, item in enumerate(comparisons[:5]):
                 color = colors[index % len(colors)]
                 spent = format_inr(item.spent_paise)
@@ -1139,39 +1193,120 @@ if st.session_state.active_nav == "Overview":
                     badge_style = "color:#747781;"
                 elif item.is_over:
                     status = format_inr(item.delta_paise) + " over"
-                    badge_style = "color:#C96F69; font-weight:700;"
+                    badge_style = "color:#BD6662; font-weight:700;"
                 else:
                     status = spent + " / " + format_inr(item.budget_paise)
-                    badge_style = "color:#2B6E4F; font-weight:600;"
+                    badge_style = "color:#527D68; font-weight:600;"
                 progress = min(100, item.percent_used or 0)
-                rows.append(
-                    f'''
+                b_rows.append(
+                    f"""
                     <div class="budget-preview-item">
-                      <div class="budget-preview-label">
-                        <span class="budget-dot" style="background:{color}" aria-hidden="true">{html.escape(item.category[:1])}</span>
-                        <span>{html.escape(item.category)}</span><small style="{badge_style}">{status}</small>
-                      </div>
-                      <div class="budget-progress-track" aria-hidden="true">
-                        <div class="budget-progress-fill" style="width:{progress}%;background:{color}"></div>
-                      </div>
+                        <div class="budget-preview-label">
+                            <span>
+                                <span class="budget-dot" style="background:{color};">{html.escape(item.category[:1])}</span>
+                                <span>{html.escape(item.category)}</span>
+                            </span>
+                            <small style="{badge_style}">{status}</small>
+                        </div>
+                        <div class="budget-progress-track">
+                            <div class="budget-progress-fill" style="width:{progress}%; background:{color};"></div>
+                        </div>
                     </div>
-                    '''
+                    """
                 )
-            st.html('<div class="budget-preview">' + "".join(rows) + '</div>')
-            if len(comparisons) > 5:
-                st.caption(f"Showing 5 of {len(comparisons)} categories.")
+            st.html("".join(b_rows))
         else:
-            st.caption("Set a budget to track spending against a target.")
+            st.info("Set a category target to start monitoring budget health.")
+        
         st.button("Manage all budgets →", key="btn_goto_budgets", width="stretch", on_click=open_budgets)
 
-    with comparison, st.container(key="dashboard_comparison"):
-        multi_month = calculate_multi_month_comparison(db.get_transactions())
-        hint = '<span class="chart-period">Select a month to explore</span>' if multi_month else ''
-        st.html(f'<div class="panel-header"><span class="panel-title">Monthly income vs expenses</span>{hint}</div>')
-        if multi_month:
-            render_monthly(multi_month, selected_month=st.session_state.selected_month, key="overview_monthly")
+    with col_recent:
+        st.html(
+            """
+            <div class="panel-header-row">
+                <div>
+                    <div class="panel-main-title">Recent Activity</div>
+                    <div class="panel-sub-title">Latest transactions recorded in this period</div>
+                </div>
+            </div>
+            """
+        )
+        recent_txs = sorted(all_txs_for_month, key=lambda t: (t.date, t.id), reverse=True)[:5]
+        if recent_txs:
+            tx_rows_html = []
+            for tx in recent_txs:
+                sign = "+" if tx.type == "income" else ("-" if tx.type == "expense" else "")
+                tone = "income" if tx.type == "income" else ("expense" if tx.type == "expense" else "transfer")
+                tx_rows_html.append(
+                    f"""
+                    <div class="recent-tx-item">
+                        <div class="recent-tx-left">
+                            <span class="recent-tx-date">{tx.date[5:]}</span>
+                            <div>
+                                <span class="recent-tx-desc">{html.escape(tx.description)}</span>
+                                <span class="recent-tx-cat">{html.escape(tx.category or tx.type)}</span>
+                            </div>
+                        </div>
+                        <div class="recent-tx-amount {tone}">{sign}{format_inr(tx.amount_paise)}</div>
+                    </div>
+                    """
+                )
+            st.html(f'<div class="recent-activity-list">{"".join(tx_rows_html)}</div>')
         else:
-            st.caption("Record income or expenses to compare months.")
+            st.info("No transactions recorded for this month.")
+
+        if st.button("View all transactions →", key="btn_goto_transactions", width="stretch"):
+            st.session_state.active_nav = "Transactions"
+            st.rerun()
+
+    # ROW E: Category Review Reminder Strip
+    if unreviewed_count > 0:
+        st.html(
+            f"""
+            <div class="review-attention-strip">
+                <div class="review-attention-left">
+                    <div class="review-badge-icon">⚡</div>
+                    <div class="review-attention-text">
+                        <div class="review-attention-title">{unreviewed_count} transaction(s) await category confirmation</div>
+                        <div class="review-attention-desc">The model flagged low-confidence transactions (confidence &lt; 0.42) for human verification.</div>
+                    </div>
+                </div>
+            </div>
+            """
+        )
+        if st.button("Open Category Review →", key="btn_goto_review", width="stretch"):
+            st.session_state.active_nav = "Category Review"
+            st.rerun()
+    else:
+        st.html(
+            """
+            <div class="review-attention-strip completed">
+                <div class="review-attention-left">
+                    <div class="review-badge-icon">✓</div>
+                    <div class="review-attention-text">
+                        <div class="review-attention-title">All transactions categorized</div>
+                        <div class="review-attention-desc">Zero pending items awaiting review in the human verification queue.</div>
+                    </div>
+                </div>
+            </div>
+            """
+        )
+
+    # ROW F: Annual Historical Cash Flow (Full Width Section)
+    multi_month = calculate_multi_month_comparison(db.get_transactions())
+    if multi_month:
+        with st.expander("Explore 12-Month Cash Flow History"):
+            st.html(
+                f"""
+                <div class="panel-header-row">
+                    <div>
+                        <div class="panel-main-title">Multi-Month Income vs Expenses</div>
+                        <div class="panel-sub-title">Historical trends across the entire active ledger</div>
+                    </div>
+                </div>
+                """
+            )
+            render_monthly(multi_month, selected_month=st.session_state.selected_month, key="overview_monthly")
 
 
 # =============================================================================
@@ -1182,8 +1317,16 @@ elif st.session_state.active_nav == "Transactions":
     
     t_head_col, t_act_col = st.columns([7, 3], vertical_alignment="center")
     with t_head_col:
-        st.subheader(f"Transactions — {month_name}")
-        st.caption("Browse, filter, edit categories, and record student financial entries.")
+        st.html(
+            f"""
+            <div class="page-title-row">
+                <div>
+                    <h1 class="view-title">Transactions</h1>
+                    <div class="view-subtitle">Browse, filter, edit categories, and record entries · {month_name}</div>
+                </div>
+            </div>
+            """
+        )
     with t_act_col:
         add_clicked = st.button("➕ Add Transaction", type="primary", width="stretch")
         if add_clicked:
@@ -1198,7 +1341,6 @@ elif st.session_state.active_nav == "Transactions":
                 with a_col1:
                     default_date = date.today()
                     try:
-                        # Default date aligned with selected month
                         default_date = date(int(st.session_state.selected_month[:4]), int(st.session_state.selected_month[5:7]), 15)
                     except Exception:
                         pass
@@ -1249,8 +1391,7 @@ elif st.session_state.active_nav == "Transactions":
 
                                 if tx_type == "income":
                                     final_cat = "Income"
-                                raid_cat = "Transfer" if tx_type == "transfer" else None
-                                if tx_type == "transfer":
+                                elif tx_type == "transfer":
                                     final_cat = "Transfer"
                                 elif tx_type == "expense":
                                     if tx_cat == "(Let AI Suggest Category)":
@@ -1278,17 +1419,16 @@ elif st.session_state.active_nav == "Transactions":
                                 db.add_transaction(new_tx)
                                 st.session_state.show_add_tx = False
                                 
-                                # Inform if transaction date is outside currently active month
                                 tx_month = iso_date[:7]
                                 if tx_month != st.session_state.selected_month:
-                                    st.info(f"Transaction recorded for {iso_date}! Note: This entry is in {tx_month}, outside your currently viewed month ({st.session_state.selected_month}).")
+                                    st.info(f"Transaction recorded for {iso_date}! Note: Entry is in {tx_month}, outside currently viewed {st.session_state.selected_month}.")
                                 else:
                                     st.toast(f"Transaction recorded! Assigned category: {final_cat}")
                                 st.rerun()
                         except Exception as e:
                             st.error(f"Error parsing amount: {e}")
 
-    # Consolidated Filter Area
+    # Consolidated Filter Card
     with st.container(border=True):
         flt_c1, flt_c2, flt_c3, flt_c4 = st.columns([2.5, 2.5, 2.5, 2.5])
         with flt_c1:
@@ -1340,20 +1480,18 @@ elif st.session_state.active_nav == "Transactions":
         search_query=st.session_state.search_query.strip() or None,
     )
 
-    # Sort matching records
     if sort_order == "Date: Oldest First":
         matching_txs = sorted(matching_txs, key=lambda t: (t.date, t.id))
     elif sort_order == "Amount: Highest First":
         matching_txs = sorted(matching_txs, key=lambda t: t.amount_paise, reverse=True)
     elif sort_order == "Amount: Lowest First":
         matching_txs = sorted(matching_txs, key=lambda t: t.amount_paise)
-    else:  # Date: Newest First
+    else:
         matching_txs = sorted(matching_txs, key=lambda t: (t.date, t.id), reverse=True)
 
     if matching_txs:
         st.write(f"Showing **{len(matching_txs)}** transaction(s).")
 
-        # Table Header
         h_cols = st.columns([1.5, 3.8, 1.6, 1.2, 2.4, 1.5])
         with h_cols[0]:
             st.markdown('<div class="ledger-header">Date</div>', unsafe_allow_html=True)
@@ -1379,7 +1517,7 @@ elif st.session_state.active_nav == "Transactions":
                     badge = f'<span class="badge-review">Review ({tx.model_score:.2f})</span>' if tx.review_status == "needs_review" else '<span class="badge-confirmed">Confirmed</span>'
                     st.html(f'<span style="font-size:11px; color:#747781;">Source: {tx.category_source} • {badge}</span>')
                 with r_cols[2]:
-                    amt_color = "#2B6E4F" if tx.type == "income" else ("#191A1F" if tx.type == "expense" else "#5E7C8D")
+                    amt_color = "#527D68" if tx.type == "income" else ("#191A1F" if tx.type == "expense" else "#5E7C8D")
                     st.html(f'<span style="font-weight:700; color:{amt_color}; font-variant-numeric:tabular-nums;">{format_inr(tx.amount_paise)}</span>')
                 with r_cols[3]:
                     st.code(tx.type, language=None)
@@ -1435,8 +1573,16 @@ elif st.session_state.active_nav == "Budgets":
 
     title_col, action_col = st.columns([3, 1], vertical_alignment="center")
     with title_col:
-        st.subheader(f"Category budgets · {month_name}")
-        st.caption("See what you spent and how much room is left in each category.")
+        st.html(
+            f"""
+            <div class="page-title-row">
+                <div>
+                    <h1 class="view-title">Budgets</h1>
+                    <div class="view-subtitle">Set and track monthly spending targets per expense category · {month_name}</div>
+                </div>
+            </div>
+            """
+        )
     with action_col:
         if st.button("Configure budgets", key="configure_budgets", type="primary", width="stretch"):
             st.session_state.budget_editor_month = month
@@ -1480,7 +1626,6 @@ elif st.session_state.active_nav == "Budgets":
     if not comparisons:
         st.info("Set a target or add an expense to start tracking a category.")
 
-    # Put categories that need attention ahead of the categories on track.
     comparisons.sort(key=lambda comp: (not comp.is_over, comp.budget_paise is not None, comp.category))
     for comp in comparisons:
         spent_label = format_inr(comp.spent_paise)
@@ -1506,7 +1651,7 @@ elif st.session_state.active_nav == "Budgets":
                 f'<div class="budget-progress-track"><div class="budget-progress-fill" style="width:{progress}%"></div></div>'
                 f'<span>{comp.percent_used:.0f}% used</span></div>'
             )
-        note_html = f'<div class="budget-note">{note}</div>' if note else ""
+        note_html = f'<div class="budget-note" style="font-size:12px; color:#737681; margin-top:4px;">{note}</div>' if note else ""
         st.html(
             f'''<article class="budget-summary {tone}">
                 <div class="budget-summary-head"><h3>{html.escape(comp.category)}</h3>
@@ -1532,18 +1677,39 @@ elif st.session_state.active_nav == "Category Review":
         pending_txs = db.get_transactions(review_status="needs_review")
         scope_desc = "Showing unconfirmed expenses across all dates"
 
-    st.subheader("AI Category Review Queue")
-    st.caption(f"{scope_desc}. Verify or adjust predicted categories.")
+    st.html(
+        """
+        <div class="page-title-row">
+            <div>
+                <h1 class="view-title">Category Review</h1>
+                <div class="view-subtitle">Human-in-the-loop verification for uncertain machine learning predictions (score &lt; 0.42)</div>
+            </div>
+        </div>
+        """
+    )
+
+    review_scope_col1, review_scope_col2 = st.columns([6, 4], vertical_alignment="center")
+    with review_scope_col1:
+        st.caption(f"{scope_desc}. Verify or adjust predicted categories.")
+    with review_scope_col2:
+        st.radio(
+            "Review Scope",
+            options=["All Records", "Current Month"],
+            horizontal=True,
+            key="review_scope",
+            label_visibility="collapsed",
+        )
 
     if not pending_txs:
-        st.success("🎉 All transaction categories in this scope are confirmed! Zero items require review.")
         st.html(
             """
-            <div style="text-align:center; padding: 40px 10px; color:#747781;">
-                <div style="font-size: 32px; margin-bottom: 8px;">✨</div>
-                <div style="font-size: 15px; font-weight: 600; color: #191A1F;">Queue is Completely Clear</div>
-                <div style="font-size: 12.5px; color: #747781; margin-top: 4px;">
-                    When you import new expenses with unfamiliar descriptions, they will appear here for verification.
+            <div class="review-attention-strip completed">
+                <div class="review-attention-left">
+                    <div class="review-badge-icon">✓</div>
+                    <div class="review-attention-text">
+                        <div class="review-attention-title">Category Review Queue is Clear</div>
+                        <div class="review-attention-desc">All transaction descriptions are confirmed. When new unclassified expenses arrive, they will appear here.</div>
+                    </div>
                 </div>
             </div>
             """
@@ -1571,7 +1737,7 @@ elif st.session_state.active_nav == "Category Review":
                             f"The current model scored its best match at {check.model_score:.4f}, "
                             f"below its {categorizer.confidence_threshold:.2f} cutoff."
                         )
-                st.html(f'<div class="review-reason"><strong>Why this needs review</strong><br>{html.escape(reason)}</div>')
+                st.html(f'<div class="review-reason" style="font-size:12px; color:#737681; margin:6px 0;"><strong>Why this needs review</strong><br>{html.escape(reason)}</div>')
 
                 choice_col, confirm_col = st.columns([3, 2], vertical_alignment="bottom")
                 with choice_col:
@@ -1592,6 +1758,16 @@ elif st.session_state.active_nav == "Category Review":
 # VIEW 5: MODEL EVALUATION & TRANSPARENCY
 # =============================================================================
 elif st.session_state.active_nav == "Model Evaluation":
+    st.html(
+        """
+        <div class="page-title-row">
+            <div>
+                <h1 class="view-title">Model Evaluation</h1>
+                <div class="view-subtitle">Synthetic holdout test results and classification diagnostics</div>
+            </div>
+        </div>
+        """
+    )
     st.caption("We tested the category model on fictional transactions it had never seen during training.")
 
     eval_json_path = Path("reports/model_evaluation.json")
