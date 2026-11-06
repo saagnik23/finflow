@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinFlow · Smart Personal Finance for Students</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --canvas: #F7F7FA;
+            --surface: #FFFFFF;
+            --text-main: #111216;
+            --text-muted: #7A8190;
+            --border: #ECEEF3;
+            --dark-pill: #18191D;
+            --accent-teal: #75D2CD;
+            --accent-lime: #ECFB94;
+            --accent-coral: #C77F78;
+            --radius-card: 24px;
+            --radius-pill: 20px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            cursor: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAkCAYAAACe0YppAAACTklEQVR4nL2Xu2sVQRSHv+xuEFFBQREhWFhpIxJrwU5SqI19LGxErPwHFMFCC0EsxD9A7KKiqAkBUTCIjZhGRMXGB+ID8W1y78ohv7kcl/vYx9x7YJidu7Pnm9+cM48LK7YGOAu8Aj4BD4CDepcAYwzB1gHzQF4obeCk62cDiGpnBFoSzJ5b7vkqsFZ905jg5wK1uqheUv0I2Kb+WSzweze1eR/4G2CvgzeO+8sBYCvLqv8AR2Il3dMS4GLcbQXQNO4PneN+4DC4oH4GWN8k7nMVwKH8Vf0E2F4XPlMD7JPuA7DPTXupuCfANz2bkyqWabCbgFvAMbWD39LgOpYq7ubnInBBituDki5pCA4+kNrjwE1go9rZMMFIZaqMnwLuAzvVzgaBY5xAmWA7gHvAAbXTov9Yiotwm+YNwHXgRK+kO1RzOQ0q/uC5DIyL10m6qcjAXjvdPLDFw/cMEVzcbF4Ak0HxpBvVKOAfgV1or/3ppmYU8DuWZb+06Y/CUoF3ZwLbAT8Ky1V/NfDvBmAfnjIbUKJ+trxYpQtf1bVcJyGXgfM25ZkCbslVxcLp8wW4CzwGPrupLM7KmDiLKh1bKKmi7WbFjsGJigPubJvh5CijOHdKjwKXqt46WPneSsdulFAc1uBpfTMe42/NlYLzXok0J3WNL/SJ6u99+oSrzTtg2v2WxwD/6PE+KDY7DLzVN//Fqanidpf3LSXPKWDWHfLRbL+Lcci8cGm/HSuuFMxUm9NrXZLqGbBZwOh/zIOK1cA54LUSyTJ9qxtcVPsHF1iLKZDrTP4AAAAASUVORK5CYII=') 2 0, auto;
+        }
+
+        body {
+            background-color: var(--canvas);
+            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+            color: var(--text-main);
+            line-height: 1.5;
+            padding: 24px 20px 60px;
+            min-height: 100vh;
+        }
+
+        a, button, [role="button"], .interactive {
+            cursor: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAkCAYAAADo6zjiAAACO0lEQVR4nM2XT2sUQRDFf92zWZGg3kQSRCEnRUTxpgdPEoSA4CcQPHkQ/ECGiBcPnr2IAa/eIgqKIILkIkZQETRudkcaXi1NM7szs/MnPiiqp7un61VPVXUPVINPnp2kFzjpDLgEnC8Y6wxe+grwGsglL4AVEUh3pzU4yXHgswwfSEL7edcEMul1GfwrPRGJoM9qzsIkBhXmLMuwGXERuTDWCL7CnHxOsE36IFB1HXcYBLwMW2BmdYn4hgR+yXAIxpPAWM+2dikh38D4H9WHUBPeAR+ATQVmpvgwQrXsOGXHES10O6oBeST7IpEn8lDrXAZuAqciZ0s/jy/ouzWDgMlB5G1ofwO2ovE9YCNxcErEJQPhhRMyegbY0ZY+kQHL/yopGjACloBd4JzW+jLP84vAx8TDPXmY1xDbFaucgch74AewDazGZdxJhsCb6PuOoiBqWx7J4cFALMYKmgtqD2tsc1VMJGGtNevz0YSj0qmxts58y4JMn2jaOdHAjiLYa/u7xNQpHxWK78A9EVqKKlqn8NJjtZ8C14BnbZ12dTGUvlFSfBYVW++lbYBPCASPQ99VPXf+GXxBn8VAL/Az+vPDJkCfadgXLL7CveGO9fkZk+1kbBtOd4hP1uFnTNzt4LfLTsavslto20ufBn4rb9s6Efel75b9k2TSD5ICMmog5sS2Urz0epZJ39eWtVEBHwPH5l3JUthJGa7b16NbTF38BF4BbxcJ8Iz2ULjtrsKLdndrkhV2G/r/8A/OTPbGnU6rzAAAAABJRU5ErkJggg==') 10 2, pointer !important;
+            text-decoration: none;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        /* Top Header */
+        .header {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-card);
+            padding: 14px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+            margin-bottom: 32px;
+        }
+
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -0.6px;
+            color: var(--text-main);
+        }
+
+        .brand-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--accent-teal);
+            box-shadow: 0 0 0 4px #DDF4F3;
+        }
+
+        .nav-pills {
+            display: inline-flex;
+            background: #F0F1F6;
+            border-radius: 16px;
+            padding: 4px;
+            border: 1px solid var(--border);
+            gap: 4px;
+        }
+
+        .nav-pill {
+            padding: 7px 18px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 12px;
+            color: var(--text-muted);
+            transition: all 0.15s ease;
+        }
+
+        .nav-pill.active {
+            background: var(--dark-pill);
+            color: #FFFFFF;
+            box-shadow: 0 2px 8px rgba(24, 25, 29, 0.18);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 18px;
+            font-size: 13.5px;
+            font-weight: 600;
+            border-radius: 14px;
+            transition: all 0.15s ease;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--dark-pill);
+            color: #FFFFFF;
+            box-shadow: 0 2px 8px rgba(24, 25, 29, 0.18);
+        }
+
+        .btn-primary:hover {
+            background: #2D2F36;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--surface);
+            color: var(--text-main);
+            border: 1px solid #E5E8EF;
+        }
+
+        .btn-secondary:hover {
+            background: #F0F1F6;
+        }
+
+        /* Hero */
+        .hero {
+            text-align: center;
+            padding: 40px 20px 32px;
+            max-width: 840px;
+            margin: 0 auto;
+        }
+
+        .badge-volt {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--accent-lime);
+            color: #162208;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 5px 14px;
+            border-radius: var(--radius-pill);
+            border: 1px solid #E0F46E;
+            margin-bottom: 18px;
+        }
+
+        .hero h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 52px;
+            font-weight: 800;
+            letter-spacing: -1.5px;
+            line-height: 1.1;
+            margin-bottom: 16px;
+            color: var(--text-main);
+        }
+
+        .hero p {
+            font-size: 18px;
+            color: var(--text-muted);
+            margin-bottom: 28px;
+            max-width: 680px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-cta {
+            display: flex;
+            justify-content: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-bottom: 40px;
+        }
+
+        /* App Preview Frame */
+        .preview-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-card);
+            overflow: hidden;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.04);
+            margin-bottom: 40px;
+        }
+
+        .preview-bar {
+            background: #FAFBFD;
+            border-bottom: 1px solid var(--border);
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .preview-dots {
+            display: flex;
+            gap: 7px;
+        }
+
+        .preview-dot {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            background: #E2E4E8;
+        }
+
+        .preview-url {
+            font-size: 12px;
+            color: var(--text-muted);
+            background: #FFFFFF;
+            border: 1px solid var(--border);
+            padding: 4px 16px;
+            border-radius: 10px;
+            font-family: monospace;
+        }
+
+        .preview-frame {
+            width: 100%;
+            height: 780px;
+            border: none;
+            display: block;
+            background: #F7F7FA;
+        }
+
+        /* Features Grid */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 900px) {
+            .features {
+                grid-template-columns: 1fr;
+            }
+            .hero h1 {
+                font-size: 38px;
+            }
+            .header {
+                flex-direction: column;
+                gap: 16px;
+            }
+        }
+
+        .feature-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-card);
+            padding: 28px 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+        }
+
+        .feature-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-bottom: 16px;
+        }
+
+        .feature-card h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 19px;
+            font-weight: 750;
+            margin-bottom: 8px;
+            color: var(--text-main);
+        }
+
+        .feature-card p {
+            font-size: 13.5px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding-top: 32px;
+            border-top: 1px solid var(--border);
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .footer a {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Top Application Header -->
+        <header class="header">
+            <div class="brand">
+                <span class="brand-dot"></span>
+                <span>FinFlow</span>
+            </div>
+            <nav class="nav-pills">
+                <span class="nav-pill active">Overview</span>
+                <span class="nav-pill">Transactions</span>
+                <span class="nav-pill">Budgets</span>
+                <span class="nav-pill">Review</span>
+                <span class="nav-pill">Evaluation</span>
+            </nav>
+            <div class="header-actions">
+                <a href="https://github.com/saagnik23/finflow" target="_blank" class="btn btn-secondary">
+                    GitHub ↗
+                </a>
+                <a href="https://spendstory.onrender.com/" target="_blank" class="btn btn-primary">
+                    Open Full App →
+                </a>
+            </div>
+        </header>
+
+        <!-- Hero -->
+        <section class="hero">
+            <div class="badge-volt">✨ AI-Assisted Student Finance · Recomposed UI</div>
+            <h1>Your money, organized with financial clarity.</h1>
+            <p>FinFlow provides student-first budgeting, integer-paise surplus intelligence, automated machine learning transaction categorization, and an illustrated cursor experience.</p>
+            <div class="hero-cta">
+                <a href="https://spendstory.onrender.com/" target="_blank" class="btn btn-primary" style="padding: 12px 26px; font-size: 15px;">
+                    Launch Live Streamlit Application 🚀
+                </a>
+                <a href="https://github.com/saagnik23/finflow" target="_blank" class="btn btn-secondary" style="padding: 12px 24px; font-size: 15px;">
+                    View Source on GitHub ↗
+                </a>
+            </div>
+        </section>
+
+        <!-- Live Embedded Application Preview Frame -->
+        <div class="preview-card">
+            <div class="preview-bar">
+                <div class="preview-dots">
+                    <span class="preview-dot" style="background: #FF5F56;"></span>
+                    <span class="preview-dot" style="background: #FFBD2E;"></span>
+                    <span class="preview-dot" style="background: #27C93F;"></span>
+                </div>
+                <div class="preview-url">https://finflow.streamlit.app · Live Instance</div>
+                <div><a href="https://spendstory.onrender.com/" target="_blank" style="font-size: 12px; color: var(--text-muted); font-weight: 600;">Open in New Tab ↗</a></div>
+            </div>
+            <iframe class="preview-frame" src="https://spendstory.onrender.com/" title="FinFlow Live Application" loading="lazy"></iframe>
+        </div>
+
+        <!-- Three Feature Pillars -->
+        <section class="features">
+            <div class="feature-card">
+                <div class="feature-icon" style="background: #E8FAF9; color: #1F746E;">⚡</div>
+                <h3>TF-IDF & Logistic Categorization</h3>
+                <p>Categorizes unstructured student bank descriptions automatically. Low-confidence transactions are transparently routed to Category Review with confidence scores.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" style="background: #ECFB94; color: #162208;">💎</div>
+                <h3>Monthly Snapshot Hero</h3>
+                <p>A unified financial hero card that highlights net surplus, tracked expenses, and separated internal bank transfers with exact integer-paise financial precision.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" style="background: #F0F1F6; color: #18191D;">🎯</div>
+                <h3>Active Budget Tracking</h3>
+                <p>Visual progress bars calibrate spending against custom category limits. Instantly flags over-budget categories and suggests dynamic reallocations.</p>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>FinFlow · Built for AI for Finance CIA-2 · Open-source on <a href="https://github.com/saagnik23/finflow" target="_blank">GitHub</a></p>
+        </footer>
+    </div>
+</body>
+</html>
