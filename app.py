@@ -1,6 +1,7 @@
 """SpendStory — AI-assisted student finance dashboard.
 
-Visual direction: Money Management Dashboard by Atiqur Rahman for ILmix Studio.
+Refined visual direction: Soft neutral canvas, crisp white surfaces, Manrope typography,
+restrained mint and lime accents, charcoal contrast, and exact reference illustrated cursor.
 """
 
 from __future__ import annotations
@@ -23,6 +24,12 @@ from src.analytics import (
     format_inr,
 )
 from src.categorizer import DEFAULT_CONFIDENCE_THRESHOLD, get_default_categorizer
+from src.cursor_assets import (
+    ARROW_DATA_URI,
+    HAND_DATA_URI,
+    get_cursor_css,
+    get_cursor_follower_html,
+)
 from src.dashboard_charts import render_donut, render_monthly, render_trend
 from src.storage import Database, ImportResult
 from src.transactions import (
@@ -44,23 +51,33 @@ st.set_page_config(
     initial_sidebar_state="auto",
 )
 
-# Custom Scoped CSS matching the Dribbble Nexora visual design brief:
-# Pale lavender background, rounded white application shell, subtle borders,
-# modern sans typography, compact top toolbar, and quiet sidebar.
-NEXORA_CSS = """
+# Custom Scoped CSS matching the refined visual design brief:
+# Neutral #F4F4F6 canvas, white #FFFFFF rounded cards, subtle #E3E4E8 borders,
+# Manrope typography, charcoal #202126 controls, and restrained mint #78A98E accents.
+SPENDSTORY_CSS = """
 <style>
-/* Root styling and Pale Lavender backdrop */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+
+/* Root styling and Neutral Canvas backdrop */
 .stApp {
-    background: linear-gradient(161deg, #d7def8 7%, #dedcf8 53%, #e8d1f3 100%) !important;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-    color: #14182D;
+    background: #F4F4F6 !important;
+    font-family: 'Manrope', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    color: #191A1F;
 }
 
-/* Sidebar styling: Quiet pale gray */
+/* Zero out height for the invisible cursor follower component */
+iframe[height="0"], [data-testid="stCustomComponentV1"]:has(iframe[height="0"]) {
+    display: none !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Sidebar styling: Clean white surface with subtle neutral border */
 [data-testid="stSidebar"] {
-    background-color: #F8FAFD !important;
-    border-right: 1px solid #EDF1F7 !important;
-    padding-top: 16px !important;
+    background-color: #FFFFFF !important;
+    border-right: 1px solid #E3E4E8 !important;
+    padding-top: 0 !important;
 }
 
 [data-testid="stSidebar"] .block-container {
@@ -71,140 +88,208 @@ NEXORA_CSS = """
     margin-top: 0 !important;
 }
 
-/* SpendStory wordmark */
-.nexora-logo {
+/* SpendStory brand header in sidebar */
+.spendstory-logo {
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 19px;
+    height: 52px;
+    font-size: 18px;
     font-weight: 800;
-    color: #14182D;
-    letter-spacing: -0.5px;
-    margin-bottom: 24px;
-    padding-left: 6px;
+    color: #191A1F;
+    letter-spacing: -0.4px;
+    border-bottom: 1px solid #E3E4E8;
+    margin-bottom: 10px;
+    padding-left: 2px;
+}
+
+.spendstory-logo .logo-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background-color: #78A98E;
+    display: inline-block;
+    box-shadow: 0 0 0 3px #CFE4D8;
 }
 
 /* Sidebar Navigation Items */
-.stRadio > div {
-    gap: 6px;
+[data-testid="stSidebar"] .stRadio [role="radiogroup"] {
+    gap: 4px !important;
 }
 
-.stRadio label {
+[data-testid="stSidebar"] .stRadio label {
     font-size: 13px !important;
     font-weight: 500 !important;
-    color: #4A5568 !important;
-    padding: 8px 12px !important;
-    border-radius: 10px !important;
+    color: #747781 !important;
+    padding: 9px 12px !important;
+    border-radius: 8px !important;
+    width: 100%;
     transition: all 0.15s ease !important;
 }
 
-.stRadio label:hover {
-    background-color: #EDF2F9 !important;
-    color: #14182D !important;
+[data-testid="stSidebar"] .stRadio label:hover {
+    background-color: #F4F4F6 !important;
+    color: #191A1F !important;
+}
+
+[data-testid="stSidebar"] .stRadio label:has(input:checked) {
+    background: #ECEEF1 !important;
+    color: #202126 !important;
+    font-weight: 600 !important;
+}
+
+[data-testid="stSidebar"] .stRadio label:focus-within {
+    outline: 2px solid #202126;
+    outline-offset: 2px;
+}
+
+[data-testid="stRadioOption"] > div > div:first-child {
+    display: none;
+}
+
+[data-testid="stSidebar"] .stRadio label p {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    white-space: nowrap;
+    margin: 0;
+}
+
+[data-testid="stSidebar"] .stRadio label p::before {
+    content: '';
+    flex: 0 0 16px;
+    height: 16px;
+    background: currentColor;
+    mask: var(--nav-icon) center / contain no-repeat;
+    -webkit-mask: var(--nav-icon) center / contain no-repeat;
+}
+
+[data-testid="stSidebar"] .stRadio [role="radiogroup"] > :nth-child(1) {
+    --nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='m12 12 4-4M7 15a6 6 0 0 1 6-9m4 4a6 6 0 0 1 0 5'/%3E%3C/svg%3E");
+}
+[data-testid="stSidebar"] .stRadio [role="radiogroup"] > :nth-child(2) {
+    --nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8'%3E%3Crect x='3' y='5' width='18' height='14' rx='2'/%3E%3Cpath d='M3 9h18m-14 5h4'/%3E%3C/svg%3E");
+}
+[data-testid="stSidebar"] .stRadio [role="radiogroup"] > :nth-child(3) {
+    --nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8'%3E%3Cpath d='M4 8h16v12H4zM7 8V4h10v4M9 13h6m-6 3h4'/%3E%3C/svg%3E");
+}
+[data-testid="stSidebar"] .stRadio [role="radiogroup"] > :nth-child(4) {
+    --nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8'%3E%3Cpath d='M3 5h9l9 9-7 7-9-9z'/%3E%3Ccircle cx='8' cy='9' r='1'/%3E%3C/svg%3E");
+}
+[data-testid="stSidebar"] .stRadio [role="radiogroup"] > :nth-child(5) {
+    --nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8'%3E%3Cpath d='M4 4v16h16M8 16v-4m5 4V8m5 8V5'/%3E%3C/svg%3E");
 }
 
 /* Top Toolbar */
 .view-title {
-    font-size: 20px;
+    font-size: 19px;
     font-weight: 700;
-    color: #14182D;
-    letter-spacing: -0.3px;
+    color: #191A1F;
+    letter-spacing: -0.4px;
     margin: 0;
+}
+
+.st-key-dashboard_toolbar {
+    padding: 10px 0;
+    border-bottom: 1px solid #E3E4E8;
+}
+
+@media (min-width: 901px) {
+  [data-testid="stLayoutWrapper"]:has(> .st-key-dashboard_toolbar) {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: #FFFFFF;
+  }
+}
+
+.st-key-dashboard_toolbar button {
+    min-height: 34px;
+    padding: 4px 12px;
 }
 
 /* Greeting Section */
 .greeting-header {
     font-size: 22px;
     font-weight: 700;
-    color: #182263;
+    color: #191A1F;
     letter-spacing: -0.5px;
     margin-bottom: 2px;
 }
 
 .greeting-subtext {
     font-size: 13px;
-    color: #586889;
+    color: #747781;
     font-weight: 400;
-    margin-bottom: 18px;
+    margin-bottom: 16px;
 }
 
-/* Four Equal Financial Summary Cards */
+/* Four Financial Summary KPI Cards */
 .metric-card {
-    background-color: #F8FAFD;
-    border: 1px solid #EAEFF7;
+    background-color: #FFFFFF;
+    border: 1px solid #E3E4E8;
     border-radius: 14px;
     padding: 16px 18px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    min-height: 112px;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    min-height: 114px;
+    box-shadow: 0 1px 3px rgba(25, 26, 31, 0.03);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
 
 .metric-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px -6px rgba(20, 24, 45, 0.05);
-}
-
-.metric-top-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    transform: translateY(-1px);
+    border-color: #CBD5E1;
+    box-shadow: 0 6px 16px rgba(25, 26, 31, 0.05);
 }
 
 .metric-label {
     font-size: 12px;
     font-weight: 600;
-    color: #202967;
-    text-transform: capitalize;
-    letter-spacing: 0.2px;
+    color: #747781;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
 }
 
 .metric-figure {
     font-size: clamp(20px, 1.8vw, 26px);
     font-weight: 700;
-    color: #182263;
+    color: #191A1F;
     letter-spacing: -0.6px;
     font-variant-numeric: tabular-nums;
-    margin: 6px 0 2px 0;
+    margin: 6px 0 3px 0;
 }
 
 .metric-badge {
     font-size: 11px;
     font-weight: 500;
-    color: #4A5568;
+    color: #747781;
     display: flex;
     align-items: center;
     gap: 4px;
-    border-top: 1px solid #e3e7ed;
+    border-top: 1px solid #E3E4E8;
     padding-top: 6px;
 }
 
 .metric-badge.green {
-    color: #0E9F6E;
+    color: #2B6E4F;
     font-weight: 600;
 }
 
 .metric-badge.red {
-    color: #D32F2F;
-    font-weight: 600;
-    background: #FDE8E8;
-    padding: 2px 6px;
-    border-radius: 4px;
-}
-
-.metric-badge.purple {
-    color: #7E3AF2;
+    color: #C96F69;
     font-weight: 600;
 }
 
-.metric-badge.blue {
-    color: #373EDC;
+.metric-badge.charcoal {
+    color: #202126;
     font-weight: 600;
 }
 
 .metric-badge.secondary {
-    color: #64748B;
+    color: #747781;
     font-weight: 400;
 }
 
@@ -219,19 +304,88 @@ NEXORA_CSS = """
 .panel-title {
     font-size: 14px;
     font-weight: 700;
-    color: #182263;
+    color: #191A1F;
     letter-spacing: -0.2px;
     margin: 0;
 }
 
-/* Category Budget Row */
+.trend-surplus {
+    line-height: 1.2;
+    margin-top: 4px;
+    color: #191A1F;
+    font-size: 24px;
+    font-weight: 750;
+    letter-spacing: -.6px;
+    font-variant-numeric: tabular-nums;
+}
+
+.chart-period {
+    color: #747781;
+    font-size: 11px;
+    text-align: right;
+}
+
+/* Four Main Chart Panels */
+:is(.st-key-dashboard_trend, .st-key-dashboard_breakdown, .st-key-dashboard_budgets, .st-key-dashboard_comparison) {
+    background: #FFFFFF !important;
+    border: 1px solid #E3E4E8 !important;
+    border-radius: 14px !important;
+    padding: 16px !important;
+    box-shadow: 0 1px 3px rgba(25, 26, 31, 0.02) !important;
+}
+
+@media (min-width: 901px) {
+  .st-key-dashboard_trend, .st-key-dashboard_breakdown { min-height: 314px; }
+  .st-key-dashboard_budgets, .st-key-dashboard_comparison { min-height: 275px; }
+}
+
+/* Category Budget Row in Overview */
+.budget-preview {
+    display: grid;
+    gap: 8px;
+}
+
+.budget-preview-item {
+    padding: 8px 12px;
+    background: #F8F9FA;
+    border: 1px solid #ECEEF1;
+    border-radius: 8px;
+}
+
+.budget-preview-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #191A1F;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.budget-preview-label small {
+    margin-left: auto;
+    text-align: right;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+}
+
+.budget-dot {
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 18px;
+    height: 18px;
+    border-radius: 50%;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+}
+
 .budget-progress-track {
     width: 100%;
-    height: 7px;
-    background-color: #EDF2F7;
+    height: 5px;
+    background-color: #ECEEF1;
     border-radius: 999px;
     overflow: hidden;
-    margin-top: 4px;
+    margin-top: 5px;
 }
 
 .budget-progress-fill {
@@ -242,196 +396,287 @@ NEXORA_CSS = """
 
 /* Badges */
 .badge-confirmed {
-    background-color: #DEF7EC;
-    color: #03543F;
-    padding: 3px 8px;
-    border-radius: 6px;
+    background-color: #EBF5F0;
+    color: #2B6E4F;
+    border: 1px solid #CFE4D8;
+    padding: 2px 7px;
+    border-radius: 4px;
     font-size: 11px;
     font-weight: 600;
 }
 
 .badge-review {
-    background-color: #FEF3C7;
-    color: #92400E;
-    padding: 3px 8px;
-    border-radius: 6px;
+    background-color: #FEF8EC;
+    color: #D4A451;
+    border: 1px solid #F9E7BE;
+    padding: 2px 7px;
+    border-radius: 4px;
     font-size: 11px;
     font-weight: 600;
 }
 
 .badge-overbudget {
-    background-color: #FEE2E2;
-    color: #991B1B;
-    padding: 3px 8px;
-    border-radius: 6px;
+    background-color: #FDF2F2;
+    color: #C96F69;
+    border: 1px solid #F5D3D1;
+    padding: 2px 7px;
+    border-radius: 4px;
     font-size: 11px;
     font-weight: 600;
 }
 
-/* Streamlit button refinements */
+/* Streamlit Button Refinements */
 .stButton > button {
-    border-radius: 10px !important;
+    border-radius: 8px !important;
     font-weight: 600 !important;
     font-size: 13px !important;
     transition: all 0.15s ease !important;
 }
 
 .stButton > button[kind="primary"] {
-    background: linear-gradient(135deg, #373EDC 0%, #4B5AEF 100%) !important;
-    border: none !important;
-    color: white !important;
-    box-shadow: 0 4px 12px rgba(55, 62, 220, 0.25) !important;
+    background: #202126 !important;
+    border: 1px solid #202126 !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 2px 6px rgba(32, 33, 38, 0.12) !important;
 }
 
 .stButton > button[kind="primary"]:hover {
-    box-shadow: 0 6px 16px rgba(55, 62, 220, 0.35) !important;
+    background: #33363F !important;
+    border-color: #33363F !important;
+    box-shadow: 0 4px 12px rgba(32, 33, 38, 0.18) !important;
     transform: translateY(-1px);
 }
 
-.sample-label {
-    display: inline-block; color: #44368a; background: #eeeafb;
-    border-radius: 6px; padding: 3px 8px; font-size: .78rem; font-weight: 650;
+.stButton > button[kind="secondary"] {
+    background: #FFFFFF !important;
+    border: 1px solid #E3E4E8 !important;
+    color: #191A1F !important;
 }
-.review-reason {
-    background: #f4f1fb; color: #392b64; border-inline-start: 3px solid #8066c9;
-    border-radius: 6px; padding: 9px 12px; font-size: .88rem;
-}
-.st-key-holdout_explorer {
-    background: #f7f6fc; border: 1px solid #e7e2f5; border-radius: 12px; padding: 14px;
-}
-.st-key-budget_editor { background: #faf9ff; }
-.st-key-budget_editor [data-testid="stHorizontalBlock"]:has([data-testid="stSlider"]) {
-    padding: 8px 0; border-bottom: 1px solid #e9e5f3;
-}
-.budget-summary {
-    background: #f8f7fc; border: 1px solid #ebe7f5;
-    border-radius: 12px; padding: 14px 16px;
-}
-.budget-summary-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
-.budget-summary-head h3 { margin: 0; padding: 0; font-size: 1rem; color: #202461; }
-.budget-status { padding: 3px 8px; border-radius: 6px; background: #e9e6f8; color: #493987; font-size: .8rem; font-weight: 700; }
-.budget-summary.over .budget-status { background: #fbe5e8; color: #9f243c; }
-.budget-summary.on-track .budget-status { background: #dcf3ea; color: #175c49; }
-.budget-amounts, .budget-note { margin-top: 6px; color: #505b72; font-size: .85rem; }
-.budget-usage { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px; margin-top: 8px; color: #505b72; font-size: .78rem; }
-.budget-summary .budget-progress-track { height: 7px; border-radius: 8px; overflow: hidden; }
-.budget-summary .budget-progress-fill { height: 100%; border-radius: inherit; background: #6d55d6; }
-.budget-summary.over .budget-progress-fill { background: #c04460; }
-.evaluation-results { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 145px), 1fr)); gap: 10px; }
-.evaluation-result { padding: 12px; border-radius: 8px; background: #fff; border: 1px solid #e7e2f5; color: #392b64; }
-.evaluation-result strong { display: block; font-size: 1.35rem; }
 
-/* Streamlit 1.66: the app view is the common parent of sidebar and main. */
+.stButton > button[kind="secondary"]:hover {
+    background: #F4F4F6 !important;
+    border-color: #CBD5E1 !important;
+    color: #191A1F !important;
+}
+
+.sample-label {
+    display: inline-block;
+    color: #202126;
+    background: #ECEEF1;
+    border: 1px solid #E3E4E8;
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-size: .78rem;
+    font-weight: 600;
+}
+
+.review-reason {
+    background: #F8F9FA;
+    color: #202126;
+    border-inline-start: 3px solid #D4A451;
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 13px;
+    margin: 8px 0;
+}
+
+.st-key-holdout_explorer {
+    background: #FFFFFF;
+    border: 1px solid #E3E4E8;
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.st-key-budget_editor {
+    background: #FFFFFF;
+    border: 1px solid #E3E4E8;
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.st-key-budget_editor [data-testid="stHorizontalBlock"]:has([data-testid="stSlider"]) {
+    padding: 8px 0;
+    border-bottom: 1px solid #E3E4E8;
+}
+
+.budget-summary {
+    background: #FFFFFF;
+    border: 1px solid #E3E4E8;
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-bottom: 10px;
+}
+
+.budget-summary-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.budget-summary-head h3 {
+    margin: 0;
+    padding: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: #191A1F;
+}
+
+.budget-status {
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: #ECEEF1;
+    color: #202126;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.budget-summary.over .budget-status {
+    background: #FDF2F2;
+    color: #C96F69;
+    border: 1px solid #F5D3D1;
+}
+
+.budget-summary.on-track .budget-status {
+    background: #EBF5F0;
+    color: #2B6E4F;
+    border: 1px solid #CFE4D8;
+}
+
+.budget-amounts, .budget-note {
+    margin-top: 6px;
+    color: #747781;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+}
+
+.budget-usage {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 12px;
+    margin-top: 10px;
+    color: #747781;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
+
+.budget-summary .budget-progress-track {
+    height: 6px;
+    border-radius: 999px;
+    background: #ECEEF1;
+}
+
+.budget-summary .budget-progress-fill {
+    height: 100%;
+    border-radius: inherit;
+    background: #78A98E;
+}
+
+.budget-summary.over .budget-progress-fill {
+    background: #C96F69;
+}
+
+.evaluation-results {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+    gap: 12px;
+    margin: 12px 0;
+}
+
+.evaluation-result {
+    padding: 14px;
+    border-radius: 10px;
+    background: #FFFFFF;
+    border: 1px solid #E3E4E8;
+    color: #191A1F;
+}
+
+.evaluation-result strong {
+    display: block;
+    font-size: 26px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: #202126;
+    margin-bottom: 2px;
+}
+
+/* Streamlit 1.66 App Frame */
 @media (min-width: 901px) {
-  /* The desktop sidebar is always visible, so the native header is redundant. */
   [data-testid="stHeader"] { display: none !important; }
   [data-testid="stAppViewContainer"] {
-    --frame-gutter: clamp(18px, 2.2vw, 42px);
-    --frame-top: clamp(16px, 2.5vh, 30px);
-    --rail: clamp(200px, 15.5vw, 240px);
+    --frame-gutter: clamp(16px, 2vw, 36px);
+    --frame-top: clamp(14px, 2vh, 24px);
+    --rail: clamp(210px, 16vw, 250px);
     margin: var(--frame-top) auto !important;
     height: calc(100dvh - 2 * var(--frame-top)) !important;
     min-height: 0 !important;
     width: calc(100% - 2 * var(--frame-gutter)) !important;
-    border: 1px solid white; border-radius: 23px;
-    overflow: hidden; background: white !important;
-    box-shadow: 0 0 0 11px rgba(255,255,255,.36), 0 0 0 12px rgba(255,255,255,.82), 0 22px 50px rgba(82,53,151,.14);
+    border: 1px solid #E3E4E8;
+    border-radius: 20px;
+    overflow: hidden;
+    background: #FFFFFF !important;
+    box-shadow: 0 4px 24px rgba(25, 26, 31, 0.05);
   }
-  [data-testid="stSidebar"] { width: var(--rail) !important; min-width: var(--rail) !important; max-width: var(--rail) !important; }
+  [data-testid="stSidebar"] {
+    width: var(--rail) !important;
+    min-width: var(--rail) !important;
+    max-width: var(--rail) !important;
+  }
   [data-testid="stSidebar"] > div:first-child { width: var(--rail) !important; }
   [data-testid="stSidebarHeader"] { display: none !important; }
   [data-testid="stSidebar"] [data-testid="stSidebarContent"],
-  [data-testid="stSidebar"] [data-testid="stSidebarUserContent"] { height: 100% !important; min-height: 0 !important; }
+  [data-testid="stSidebar"] [data-testid="stSidebarUserContent"] {
+    height: 100% !important;
+    min-height: 0 !important;
+  }
   [data-testid="stMain"] {
     height: calc(100dvh - 2 * var(--frame-top) - 2px) !important;
     min-height: 0 !important;
     overflow-y: auto !important;
+    background: #FFFFFF !important;
   }
   [data-testid="stSidebar"] [data-testid="stVerticalBlock"]:has(> [data-testid="stElementContainer"] .sidebar-spacer) {
     min-height: calc(100dvh - 2 * var(--frame-top) - 16px);
   }
 }
+
 [data-testid="stToolbar"], [data-testid="stAppDeployButton"] { display: none !important; }
-[data-testid="stMain"] { background: white !important; }
+[data-testid="stMain"] { background: #FFFFFF !important; }
 [data-testid="stMainBlockContainer"] { max-width: none !important; padding: 0 16px 20px !important; }
-[data-testid="stSidebar"] { padding-top: 0 !important; background: #f3f6f8 !important; }
 [data-testid="stSidebar"] [data-testid="stSidebarContent"] { padding: 0 !important; }
 [data-testid="stSidebar"] [data-testid="stSidebarUserContent"] { padding: 0 12px 14px !important; min-height: 100%; }
 [data-testid="stSidebar"] [data-testid="stSidebarUserContent"] > [data-testid="stVerticalBlock"] { min-height: 100%; }
 [data-testid="stSidebar"] [data-testid="stVerticalBlock"] > [data-testid="stElementContainer"]:has(.sidebar-spacer) { flex: 1; min-height: 12px; }
 [data-testid="stSidebar"] [data-testid="stVerticalBlock"] { gap: .55rem !important; }
-[data-testid="stSidebar"] .stRadio [role="radiogroup"] { gap: 3px !important; }
-[data-testid="stSidebar"] .stRadio label { padding: 8px 10px !important; width: 100%; }
-[data-testid="stSidebar"] .stRadio label:has(input:checked) { background: #e9eafd; color: #3029c5 !important; }
-[data-testid="stRadioOption"] > div > div:first-child { display: none; }
-[data-testid="stSidebar"] .stRadio label:focus-within { outline: 2px solid #373edc; outline-offset: 2px; }
-[data-testid="stSidebar"] .stRadio label p { display: flex; align-items: center; gap: 8px; font-size: 13px; white-space: nowrap; }
-[data-testid="stSidebar"] .stRadio label p::before {
-  content: ''; flex: 0 0 16px; height: 16px; background: currentColor;
-  mask: var(--nav-icon) center / contain no-repeat;
-}
-[data-testid="stSidebar"] .stRadio [role="radiogroup"] > :nth-child(1) { --nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='m12 12 4-4M7 15a6 6 0 0 1 6-9m4 4a6 6 0 0 1 0 5'/%3E%3C/svg%3E"); }
-[data-testid="stSidebar"] .stRadio [role="radiogroup"] > :nth-child(2) { --nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8'%3E%3Crect x='3' y='5' width='18' height='14' rx='2'/%3E%3Cpath d='M3 9h18m-14 5h4'/%3E%3C/svg%3E"); }
-[data-testid="stSidebar"] .stRadio [role="radiogroup"] > :nth-child(3) { --nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8'%3E%3Cpath d='M4 8h16v12H4zM7 8V4h10v4M9 13h6m-6 3h4'/%3E%3C/svg%3E"); }
-[data-testid="stSidebar"] .stRadio [role="radiogroup"] > :nth-child(4) { --nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8'%3E%3Cpath d='M3 5h9l9 9-7 7-9-9z'/%3E%3Ccircle cx='8' cy='9' r='1'/%3E%3C/svg%3E"); }
-[data-testid="stSidebar"] .stRadio [role="radiogroup"] > :nth-child(5) { --nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8'%3E%3Cpath d='M4 4v16h16M8 16v-4m5 4V8m5 8V5'/%3E%3C/svg%3E"); }
 [data-testid="stMain"] [data-testid="stVerticalBlock"] { gap: .65rem; }
-:is(.st-key-dashboard_trend, .st-key-dashboard_breakdown, .st-key-dashboard_budgets, .st-key-dashboard_comparison) {
-  background: #f3f5f7; border: 1px solid #edf0f4; border-radius: 12px; padding: 14px !important;
-}
-.trend-surplus { line-height: 1.2; margin-top: 4px; color: #182263; font-size: 26px; font-weight: 750; letter-spacing: -.6px; }
-.chart-period { color: #586889; font-size: 11px; text-align: right; }
-@media (min-width: 901px) {
-  .st-key-dashboard_trend, .st-key-dashboard_breakdown { min-height: 314px; }
-  .st-key-dashboard_budgets, .st-key-dashboard_comparison { min-height: 275px; }
-}
 [data-testid="stMain"] [data-testid="stHorizontalBlock"] { gap: 12px; }
-.nexora-logo { height: 48px; padding: 0; margin: 0; border-bottom: 1px solid #e5e9ef; }
-.panel-header { margin: 0; }
-.st-key-dashboard_toolbar { padding: 8px 0; border-bottom: 1px solid #e8ebf0; }
-@media (min-width: 901px) {
-  [data-testid="stLayoutWrapper"]:has(> .st-key-dashboard_toolbar) {
-    position: sticky; top: 0; z-index: 5; background: #fff;
-  }
-}
-.st-key-dashboard_toolbar .view-title { font-size: 18px; }
-.st-key-dashboard_toolbar button { min-height: 33px; padding: 4px 9px; }
-.budget-preview { display: grid; gap: 6px; }
-.budget-preview-item { padding: 6px 9px; background: white; border-radius: 7px; }
-.budget-preview-label { display: flex; align-items: center; gap: 7px; color: #202967; font-size: 11px; font-weight: 650; }
-.budget-preview-label small { margin-left: auto; text-align: right; color: #526283; font-size: 10px; }
-.budget-dot { display: inline-grid; place-items: center; flex: 0 0 18px; height: 18px; border-radius: 50%; color: white; font-size: 10px; }
-.budget-progress-track { height: 4px; background: #e7e4f8; }
-.budget-progress-fill { transform-origin: left; animation: budget-grow .55s ease-out both; }
-@keyframes budget-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-.metric-figure { animation: value-enter .28s cubic-bezier(.2,.7,.2,1) both; }
-.st-key-dashboard_metrics [data-testid="stColumn"]:nth-child(2) .metric-figure { animation-delay: 35ms; }
-.st-key-dashboard_metrics [data-testid="stColumn"]:nth-child(3) .metric-figure { animation-delay: 70ms; }
-.st-key-dashboard_metrics [data-testid="stColumn"]:nth-child(4) .metric-figure { animation-delay: 105ms; }
-@keyframes value-enter { from { opacity: .4; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
 /* Ledger & Table Styling */
 .ledger-header {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
-  color: #64748B;
+  color: #747781;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding: 6px 10px;
-  border-bottom: 2px solid #EDF2F7;
-  margin-bottom: 4px;
+  letter-spacing: 0.6px;
+  padding: 8px 10px;
+  border-bottom: 1px solid #E3E4E8;
+  margin-bottom: 6px;
 }
+
 .ledger-row {
-  background: white;
-  border: 1px solid #EDF2F7;
+  background: #FFFFFF;
+  border: 1px solid #E3E4E8;
   border-radius: 10px;
   padding: 10px 14px;
   margin-bottom: 6px;
   transition: all 0.15s ease;
 }
+
 .ledger-row:hover {
   border-color: #CBD5E1;
-  box-shadow: 0 4px 12px rgba(20, 24, 45, 0.03);
+  box-shadow: 0 4px 12px rgba(25, 26, 31, 0.04);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -440,29 +685,39 @@ NEXORA_CSS = """
     transition: none !important;
   }
 }
+
 @media (max-width: 900px) {
-  [data-testid="stMain"] { background: white !important; }
+  [data-testid="stMain"] { background: #FFFFFF !important; }
   [data-testid="stMainBlockContainer"] { padding: 56px 12px 24px !important; }
   [data-testid="stHeader"] {
-    height: 48px !important; min-height: 48px !important; background: white !important;
+    height: 48px !important;
+    min-height: 48px !important;
+    background: #FFFFFF !important;
     pointer-events: none;
   }
   [data-testid="stHeader"] button { pointer-events: auto; }
   [data-testid="stToolbar"] { display: flex !important; }
   [data-testid="stMain"] [data-testid="stHorizontalBlock"] { gap: 10px; }
 }
+
 @media (max-width: 640px) {
   .st-key-dashboard_metrics [data-testid="stHorizontalBlock"],
-  .st-key-dashboard_toolbar [data-testid="stHorizontalBlock"] { display: grid !important; grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .st-key-dashboard_toolbar [data-testid="stHorizontalBlock"] {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0,1fr));
+  }
   .st-key-dashboard_metrics [data-testid="stColumn"],
-  .st-key-dashboard_toolbar [data-testid="stColumn"] { width: 100% !important; min-width: 0 !important; }
+  .st-key-dashboard_toolbar [data-testid="stColumn"] {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
   .st-key-dashboard_toolbar [data-testid="stColumn"]:first-child { grid-column: 1 / -1; }
   .metric-card { min-height: 100px; padding: 12px; }
   .metric-figure { font-size: 19px; }
 }
 </style>
 """
-st.html(NEXORA_CSS)
+st.html(SPENDSTORY_CSS)
 
 
 # -----------------------------------------------------------------------------
@@ -502,6 +757,7 @@ st.session_state.setdefault("search_query", "")
 st.session_state.setdefault("tx_type_filter", "All")
 st.session_state.setdefault("tx_cat_filter", "All")
 st.session_state.setdefault("tx_review_filter", "All")
+st.session_state.setdefault("custom_cursor_enabled", True)
 
 if st.session_state.selected_month not in available_months:
     st.session_state.selected_month = available_months[0]
@@ -536,13 +792,14 @@ def demo_fingerprints(csv_bytes: bytes) -> set[str]:
 
 
 # -----------------------------------------------------------------------------
-# Sidebar Navigation & Actions
+# Sidebar Navigation & Settings
 # -----------------------------------------------------------------------------
 with st.sidebar:
-    # SpendStory wordmark
+    # SpendStory brand wordmark
     st.html(
         """
-        <div class="nexora-logo">
+        <div class="spendstory-logo">
+            <span class="logo-dot"></span>
             <span>SpendStory</span>
         </div>
         """
@@ -562,6 +819,14 @@ with st.sidebar:
 
     st.html('<div class="sidebar-spacer" aria-hidden="true"></div>')
 
+    with st.expander("Settings & Appearance"):
+        st.toggle(
+            "Kawaii Custom Cursor",
+            value=st.session_state.custom_cursor_enabled,
+            key="custom_cursor_enabled",
+        )
+        st.caption("Exact reference illustrated arrow and pointing hand cursor. Switch off anytime to use standard system cursor.")
+
     with st.expander("Demo tools"):
         st.caption("Load fictional student transactions and sample budgets.")
         st.button("Try sample data", key="sidebar_sample_data", on_click=load_sample_data, width="stretch")
@@ -573,6 +838,12 @@ with st.sidebar:
             db.clear_all_data()
             st.toast("Ledger cleared.")
             st.rerun()
+
+
+# Inject dual-layer custom cursor according to user preference
+cursor_is_active = st.session_state.get("custom_cursor_enabled", True)
+st.html(get_cursor_css(cursor_is_active))
+st.components.v1.html(get_cursor_follower_html(cursor_is_active), height=0)
 
 
 # -----------------------------------------------------------------------------
@@ -653,7 +924,7 @@ with st.container(key="dashboard_toolbar"):
         with toolbar_cols[0]:
             st.html('<h1 class="view-title">Budgets</h1>')
         with toolbar_cols[1]:
-            st.html('<div style="text-align:right; color:#64748B; font-size:12px; font-weight:500;">Budget month</div>')
+            st.html('<div style="text-align:right; color:#747781; font-size:12px; font-weight:500;">Budget month</div>')
         with toolbar_cols[2]:
             st.selectbox(
                 "Month",
@@ -686,14 +957,14 @@ with st.container(key="dashboard_toolbar"):
                     label_visibility="collapsed",
                 )
             else:
-                st.html('<div style="text-align:right; font-size:11.5px; color:#64748B;">Scope: Entire Database</div>')
+                st.html('<div style="text-align:right; font-size:11.5px; color:#747781;">Scope: Entire Database</div>')
 
     elif st.session_state.active_nav == "Model Evaluation":
         toolbar_cols = st.columns([6.0, 4.0], vertical_alignment="center")
         with toolbar_cols[0]:
             st.html('<h1 class="view-title">Model Evaluation</h1>')
         with toolbar_cols[1]:
-            st.html('<div style="text-align:right;"><span style="font-size:11.5px; background:#EDF0F7; color:#3B4863; padding:5px 10px; border-radius:12px; font-weight:600;">Fictional test data</span></div>')
+            st.html('<div style="text-align:right;"><span style="font-size:11.5px; background:#ECEEF1; color:#202126; padding:5px 10px; border-radius:12px; font-weight:600;">Fictional test data</span></div>')
 
 # Sync query parameters with navigation & month
 if query_nav != st.session_state.active_nav or query_month != st.session_state.selected_month:
@@ -766,7 +1037,7 @@ if show_import_dialog or st.session_state.get("show_import_panel", False):
 
 
 # =============================================================================
-# VIEW 1: OVERVIEW (Dribbble Nexora High-Fidelity Dashboard)
+# VIEW 1: OVERVIEW (Soft Neutral Canvas & White Surface Dashboard)
 # =============================================================================
 if st.session_state.active_nav == "Overview":
     month_name = datetime.strptime(st.session_state.selected_month, "%Y-%m").strftime("%B %Y")
@@ -798,11 +1069,11 @@ if st.session_state.active_nav == "Overview":
         surplus_tone = "red"
     else:
         surplus_caption = "Exact balance"
-        surplus_tone = "blue"
+        surplus_tone = "charcoal"
 
     metrics = (
         ("Recorded income", summary.income_paise, "Income this month", "green"),
-        ("Recorded expenses", summary.expense_paise, "Spending this month", "purple"),
+        ("Recorded expenses", summary.expense_paise, "Spending this month", "charcoal"),
         ("Recorded surplus", summary.recorded_surplus_paise, surplus_caption, surplus_tone),
         ("Transfers excluded", summary.transfer_paise, "Tracked separately · Excluded from surplus", "secondary"),
     )
@@ -822,7 +1093,7 @@ if st.session_state.active_nav == "Overview":
 
     trend, breakdown = st.columns([7.15, 2.85])
     with trend, st.container(key="dashboard_trend"):
-        surplus_color = "#182263" if summary.recorded_surplus_paise >= 0 else "#D32F2F"
+        surplus_color = "#191A1F" if summary.recorded_surplus_paise >= 0 else "#C96F69"
         st.html(
             f'''
             <div class="panel-header">
@@ -858,20 +1129,20 @@ if st.session_state.active_nav == "Overview":
         budget_targets = db.get_budgets(st.session_state.selected_month)
         comparisons = calculate_budget_comparisons(summary.expense_by_category_paise, budget_targets)
         if comparisons:
-            colors = ("#19b961", "#0baeca", "#5675f3", "#6148e5", "#9149ea", "#f59e0b", "#ec4899")
+            colors = ("#78A98E", "#5E7C8D", "#8EA89D", "#C96F69", "#D4A451", "#202126", "#A0AEC0")
             rows = []
             for index, item in enumerate(comparisons[:5]):
                 color = colors[index % len(colors)]
                 spent = format_inr(item.spent_paise)
                 if item.budget_paise is None:
                     status = spent + " · No target set"
-                    badge_style = "color:#64748B;"
+                    badge_style = "color:#747781;"
                 elif item.is_over:
                     status = format_inr(item.delta_paise) + " over"
-                    badge_style = "color:#D32F2F; font-weight:700;"
+                    badge_style = "color:#C96F69; font-weight:700;"
                 else:
                     status = spent + " / " + format_inr(item.budget_paise)
-                    badge_style = "color:#059669;"
+                    badge_style = "color:#2B6E4F; font-weight:600;"
                 progress = min(100, item.percent_used or 0)
                 rows.append(
                     f'''
@@ -978,9 +1249,10 @@ elif st.session_state.active_nav == "Transactions":
 
                                 if tx_type == "income":
                                     final_cat = "Income"
-                                elif tx_type == "transfer":
+                                raid_cat = "Transfer" if tx_type == "transfer" else None
+                                if tx_type == "transfer":
                                     final_cat = "Transfer"
-                                else:
+                                elif tx_type == "expense":
                                     if tx_cat == "(Let AI Suggest Category)":
                                         pred = categorizer.predict(clean_desc)
                                         final_cat = pred.category
@@ -1047,9 +1319,9 @@ elif st.session_state.active_nav == "Transactions":
         ch_col, rst_col = st.columns([8, 2], vertical_alignment="center")
         with ch_col:
             if active_chips:
-                st.html(f'<span style="font-size:12px; color:#475569;">Active Filters: <b>{" • ".join(active_chips)}</b></span>')
+                st.html(f'<span style="font-size:12px; color:#191A1F;">Active Filters: <b>{" • ".join(active_chips)}</b></span>')
             else:
-                st.html('<span style="font-size:12px; color:#64748B;">Showing all records for selected month.</span>')
+                st.html('<span style="font-size:12px; color:#747781;">Showing all records for selected month.</span>')
         with rst_col:
             if active_chips:
                 if st.button("Reset Filters", width="stretch"):
@@ -1101,13 +1373,13 @@ elif st.session_state.active_nav == "Transactions":
                 r_cols = st.columns([1.5, 3.8, 1.6, 1.2, 2.4, 1.5], vertical_alignment="center")
                 with r_cols[0]:
                     st.write(f"**{tx.date}**")
-                    st.html(f'<span style="font-size:10px; color:#94A3B8; font-family:monospace;" title="{tx.id}">{tx.id[:12]}…</span>')
+                    st.html(f'<span style="font-size:10px; color:#747781; font-family:monospace;" title="{tx.id}">{tx.id[:12]}…</span>')
                 with r_cols[1]:
                     st.write(html.escape(tx.description))
                     badge = f'<span class="badge-review">Review ({tx.model_score:.2f})</span>' if tx.review_status == "needs_review" else '<span class="badge-confirmed">Confirmed</span>'
-                    st.html(f'<span style="font-size:11px; color:#7A8499;">Source: {tx.category_source} • {badge}</span>')
+                    st.html(f'<span style="font-size:11px; color:#747781;">Source: {tx.category_source} • {badge}</span>')
                 with r_cols[2]:
-                    amt_color = "#059669" if tx.type == "income" else ("#182263" if tx.type == "expense" else "#3B82F6")
+                    amt_color = "#2B6E4F" if tx.type == "income" else ("#191A1F" if tx.type == "expense" else "#5E7C8D")
                     st.html(f'<span style="font-weight:700; color:{amt_color}; font-variant-numeric:tabular-nums;">{format_inr(tx.amount_paise)}</span>')
                 with r_cols[3]:
                     st.code(tx.type, language=None)
@@ -1177,7 +1449,6 @@ elif st.session_state.active_nav == "Budgets":
             for cat in sorted(ALLOWED_EXPENSE_CATEGORIES):
                 saved = current_budgets.get(cat)
                 spent = summary.expense_by_category_paise.get(cat, 0)
-                # Keep old amounts selectable even if they fall between the slider steps.
                 upper = max(1_000_000, 2 * max(saved or 0, spent))
                 step = max(5_000, ((upper + 999_999) // 1_000_000) * 5_000)
                 options = sorted(set(range(0, upper + step, step)) | {saved or 0})
@@ -1268,10 +1539,10 @@ elif st.session_state.active_nav == "Category Review":
         st.success("🎉 All transaction categories in this scope are confirmed! Zero items require review.")
         st.html(
             """
-            <div style="text-align:center; padding: 40px 10px; color:#5A6478;">
+            <div style="text-align:center; padding: 40px 10px; color:#747781;">
                 <div style="font-size: 32px; margin-bottom: 8px;">✨</div>
-                <div style="font-size: 15px; font-weight: 600; color: #182263;">Queue is Completely Clear</div>
-                <div style="font-size: 12.5px; color: #64748B; margin-top: 4px;">
+                <div style="font-size: 15px; font-weight: 600; color: #191A1F;">Queue is Completely Clear</div>
+                <div style="font-size: 12.5px; color: #747781; margin-top: 4px;">
                     When you import new expenses with unfamiliar descriptions, they will appear here for verification.
                 </div>
             </div>

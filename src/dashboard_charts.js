@@ -1,7 +1,7 @@
 const SVG_NS = "http://www.w3.org/2000/svg";
-const INCOME = "#5149ef";
-const EXPENSE = "#ce38dd";
-const PALETTE = ["#cc36df", "#a651ef", "#855cf7", "#5659ef", "#3984ee", "#8aa9f5", "#6a79e2"];
+const INCOME = "#78A98E"; // Mint accent
+const EXPENSE = "#202126"; // Charcoal
+const PALETTE = ["#78A98E", "#5E7C8D", "#8EA89D", "#C96F69", "#D4A451", "#202126", "#A0AEC0"];
 const CATEGORY_COLORS = new Map(
     ["Food", "Transport", "Education", "Bills", "Shopping", "Entertainment", "Other"]
         .map((category, index) => [category, PALETTE[index]]),
