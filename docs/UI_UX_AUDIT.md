@@ -18,7 +18,7 @@ SpendStory is an AI-assisted personal finance dashboard built for students, comb
 | **ML Engine** | scikit-learn 1.9.1 (TF-IDF + Logistic Regression) | Preserve exact model weights, cutoff (0.42), and abstention logic |
 | **Math / Logic** | Integer paise arithmetic, no floating-point currency drift | Preserved in `src/analytics.py` and `src/transactions.py` |
 | **Component Model** | Streamlit Web Components v2 (`st.components.v2.component`) | Uses Shadow DOM for chart isolation |
-| **Deployment** | Render Web Service (`render.yaml`) | Preserve exact build and start configurations |
+| **Deployment** | Vercel Production Showcase (`vercel.json`) | Cloud-native deployment configuration |
 
 ---
 

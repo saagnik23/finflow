@@ -98,7 +98,7 @@ The model sent 13 of the 18 synthetic examples to human review. Its five correct
 ---
 
 ## 5. Live Demo and Screenshots
-The [hosted SpendStory demo](https://spendstory.onrender.com/) starts with 218 fictional transactions across 12 months. Each browser session gets a temporary SQLite ledger. The screenshots show the live November Overview.
+The [hosted FinFlow demo](https://finflow-eight-henna.vercel.app/) starts with 218 fictional transactions across 12 months. Each browser session gets a temporary SQLite ledger. The screenshots show the live November Overview.
 
 - [Financial summary, cumulative trends, and expense breakdown](screenshots/overview.jpg)
 - [Budget progress and twelve-month income and expenses](screenshots/monthly-comparison.jpg)

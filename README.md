@@ -2,7 +2,7 @@
 
 FinFlow is an AI-assisted personal finance dashboard for students. It helps you see where your money went, check how spending compares with category budgets, and review expense categories suggested by a machine learning model. Built for the **AI for Finance CIA-2** assignment.
 
-[Open the live demo](https://spendstory.onrender.com/) · [Project report](docs/PROJECT_REPORT.md) · [Presentation walkthrough](docs/DEMO_SCRIPT.md)
+[Open the live demo](https://finflow-eight-henna.vercel.app/) · [Project report](docs/PROJECT_REPORT.md) · [Presentation walkthrough](docs/DEMO_SCRIPT.md)
 
 ![FinFlow Redesigned Overview](docs/spendstory-reference-style-render.png)
 
@@ -50,6 +50,6 @@ Open [localhost:8501](http://127.0.0.1:8501) and select **Try sample data**. The
 | [scripts/](scripts/) and [reports/](reports/) | Model evaluation script and saved results |
 | [tests/](tests/) | Tests for transactions, storage, analytics, categorization, and the UI |
 | [docs/](docs/) | Project report, presentation notes, and live dashboard screenshots |
-| [render.yaml](render.yaml) | Render Web Service configuration for the hosted demo |
+| [vercel.json](vercel.json) | Vercel production deployment configuration for the hosted showcase |
 
 The interface draws inspiration from the [Money Management Dashboard by Atiqur Rahman for ILmix Studio](https://dribbble.com/shots/27090441-Money-Management-Dashboard). Antigravity helped scaffold the project. Codex assisted with the dashboard, demo data, deployment, and verification.
