@@ -1,7 +1,7 @@
 const SVG_NS = "http://www.w3.org/2000/svg";
-const INCOME = "#83AD96"; // Muted sage / mint positive
-const EXPENSE = "#C77F78"; // Muted coral expense
-const PALETTE = ["#83AD96", "#5E7C8D", "#8EA89D", "#C77F78", "#D6A451", "#202126", "#A0AEC0"];
+const INCOME = "#75D2CD"; // Soft vibrant mint from reference
+const EXPENSE = "#18191D"; // Deep charcoal from reference
+const PALETTE = ["#75D2CD", "#E4FA53", "#5B8EE4", "#C77F78", "#D8B4E2", "#18191D", "#9DA5B4"];
 const CATEGORY_COLORS = new Map(
     ["Food", "Transport", "Education", "Bills", "Shopping", "Entertainment", "Other"]
         .map((category, index) => [category, PALETTE[index]]),
@@ -169,10 +169,10 @@ function renderTrend(root, rows, width, id) {
     const left = 32, top = 13, right = width - 10, bottom = height - 28;
     const { svg, defs } = makePlot(root, width, height, "Cumulative income and expenses");
     const incomePaint = gradient(defs, id + "-income", [
-        ["0%", "#635cf2", .39], ["65%", "#8e89ff", .15], ["100%", "#b7b2ff", .015],
+        ["0%", "#75D2CD", .32], ["65%", "#75D2CD", .12], ["100%", "#75D2CD", .01],
     ]);
     const expensePaint = gradient(defs, id + "-expense", [
-        ["0%", "#e03ddc", .39], ["70%", "#e989ed", .13], ["100%", "#f1bcf7", .015],
+        ["0%", "#18191D", .22], ["70%", "#C77F78", .08], ["100%", "#FFFFFF", .01],
     ]);
     const day = ({ date }) => Date.parse(date) / 86400000;
     const first = day(rows[0]);
@@ -227,8 +227,8 @@ function renderTrend(root, rows, width, id) {
     }
 
     const highlight = svgNode(svg, "g", { visibility: "hidden", "pointer-events": "none" });
-    const band = svgNode(highlight, "rect", { y: top, height: bottom - top, width: 24, rx: 5, fill: "#E4F477", opacity: .35 });
-    const ruler = svgNode(highlight, "line", { y1: top, y2: bottom, stroke: "#202126", "stroke-dasharray": "3 3" });
+    const band = svgNode(highlight, "rect", { y: top, height: bottom - top, width: 24, rx: 6, fill: "#ECFB94", opacity: .45 });
+    const ruler = svgNode(highlight, "line", { y1: top, y2: bottom, stroke: "#18191D", "stroke-dasharray": "3 3" });
     const dots = series.map(([, color]) => svgNode(highlight, "circle", {
         r: 4.4, fill: color, stroke: "#fff", "stroke-width": 1.7,
     }));
@@ -412,7 +412,7 @@ function renderMonthly(root, rows, width, id, { selectedMonth, selectMonth }) {
     const baseline = (top + bottom) / 2;
     const { svg, defs } = makePlot(root, width, height, "Monthly income above and spending below zero");
     const solid = gradient(defs, id + "-bar", [
-        ["0%", "#5547f3", 1], ["58%", "#382ddd", 1], ["100%", "#2a25be", 1],
+        ["0%", "#75D2CD", 1], ["58%", "#56BBB5", 1], ["100%", "#3FA49E", 1],
     ]);
     const fade = gradient(defs, id + "-water-fade", [
         ["0%", "#fff", .88], ["62%", "#fff", .6], ["100%", "#fff", .12],
@@ -422,7 +422,7 @@ function renderMonthly(root, rows, width, id, { selectedMonth, selectMonth }) {
     });
     svgNode(pattern, "path", {
         d: "M-4 4 Q-2 1 0 0 M-1 7 Q1 3 4 0 M2 8 Q4 5 8 2 M5 9 Q7 7 9 6",
-        fill: "none", stroke: "#7164f1", "stroke-width": 1.15, opacity: .72,
+        fill: "none", stroke: "#75D2CD", "stroke-width": 1.15, opacity: .72,
     });
     const maxValue = Math.max(...rows.flatMap((row) => [row.income_inr, row.expense_inr]));
     const tick = axisStep(maxValue);
@@ -446,11 +446,11 @@ function renderMonthly(root, rows, width, id, { selectedMonth, selectMonth }) {
         svgNode(svg, "rect", {
             class: "month-current", x: x(selectedIndex) - bandWidth / 2,
             y: top, width: bandWidth, height: bottom - top, rx: 6,
-            fill: "#e5dfff", stroke: "#bcb1f0", "stroke-width": 1,
+            fill: "#E8FAF9", stroke: "#75D2CD", "stroke-width": 1.5,
         });
     }
     const highlight = svgNode(svg, "rect", {
-        y: top, height: bottom - top, width: bandWidth, rx: 6, fill: "#d9d4ff", opacity: .65,
+        y: top, height: bottom - top, width: bandWidth, rx: 6, fill: "#ECFB94", opacity: .5,
         visibility: "hidden",
     });
     rows.forEach((row, i) => {
@@ -472,7 +472,7 @@ function renderMonthly(root, rows, width, id, { selectedMonth, selectMonth }) {
             const reflection = svgNode(bars, "g", {
                 "clip-path": `url(#${id}-reflection-${i})`, mask: `url(#${id}-fade-${i})`,
             });
-            svgNode(reflection, "rect", { ...shape, fill: "#b6a9ff", opacity: .28 });
+            svgNode(reflection, "rect", { ...shape, fill: "#18191D", opacity: .16 });
             svgNode(reflection, "rect", {
                 class: "water", x: barX - 3, y: baseline + 1, width: barWidth + 6, height: down,
                 fill: `url(#${id}-ripples)`,
@@ -491,8 +491,8 @@ function renderMonthly(root, rows, width, id, { selectedMonth, selectMonth }) {
         highlight.setAttribute("x", x(i) - bandWidth / 2);
         highlight.setAttribute("visibility", "visible");
         tooltip.show(row.month_label, [
-            ["Income", rupees.format(row.income_inr), INCOME],
-            ["Expenses", rupees.format(row.expense_inr), "#8977ec"],
+            ["Income", rupees.format(row.income_inr), "#75D2CD"],
+            ["Expenses", rupees.format(row.expense_inr), "#18191D"],
         ], x(i), baseline - scale(row.income_inr), announce);
     }, () => {
         highlight.setAttribute("visibility", "hidden");
