@@ -17,3 +17,5 @@ reports/*
 data/private/
 handoff/ui-experiments/
 *.log
+.vercel
+.env*
