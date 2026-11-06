@@ -65,13 +65,13 @@ st.set_page_config(
 
 SPENDSTORY_CSS = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,800;0,9..144,900;1,9..144,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 
-/* Global Root Styling: Warm Apricot / Terracotta Canvas matching Crowz */
+/* Global Root Styling: Clean Minimal Light Neutral Canvas */
 .stApp {
-    background: #E8A185 !important;
+    background: #F9FAFB !important;
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-    color: #1E1F24;
+    color: #111827;
 }
 
 /* Hide Streamlit default header, toolbar, sidebar, and expand toggle */
@@ -90,23 +90,21 @@ header[data-testid="stHeader"],
     visibility: hidden !important;
 }
 
-/* Grand Floating White Card Workspace */
+/* Clean Minimal Workspace */
 .stMainBlockContainer, [data-testid="stMainBlockContainer"], .block-container {
     max-width: 1240px !important;
-    background: #FFFFFF !important;
-    border-radius: 38px !important;
-    padding-top: 28px !important;
-    padding-bottom: 40px !important;
-    padding-left: 36px !important;
-    padding-right: 36px !important;
-    margin: 24px auto !important;
-    box-shadow: 0 24px 70px rgba(160, 68, 38, 0.22) !important;
+    padding-top: 18px !important;
+    padding-bottom: 48px !important;
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+    margin: 0 auto !important;
 }
 
-h1, h2, h3, .main-heading, .client-dashboard-title {
-    font-family: 'Fraunces', Georgia, serif !important;
-    font-weight: 800 !important;
-    color: #1E1F24 !important;
+h1, h2, h3, .main-heading, .client-dashboard-title, .view-title {
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    font-weight: 700 !important;
+    color: #111827 !important;
+    letter-spacing: -0.5px !important;
 }
 
 @media (max-width: 1080px) {
