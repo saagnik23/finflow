@@ -4,9 +4,7 @@ SpendStory is an AI-assisted personal finance dashboard for students. It helps y
 
 [Open the live demo](https://spendstory.onrender.com/) · [Project report](docs/PROJECT_REPORT.md) · [Presentation walkthrough](docs/DEMO_SCRIPT.md)
 
-![SpendStory Overview with November totals, cumulative income and spending, and a seven-category expense breakdown](docs/screenshots/overview.jpg)
-
-![SpendStory monthly budgets and the twelve-month income and expense comparison](docs/screenshots/monthly-comparison.jpg)
+![SpendStory Redesigned Overview](docs/spendstory-reference-style-render.png)
 
 ## Try the demo
 
